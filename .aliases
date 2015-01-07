@@ -1,4 +1,5 @@
 # Easier navigation: .., ..., ...., ....., ~ and -
+alias cd..="cd .."
 alias ..="cd .."
 alias ...="cd ../.."
 alias ....="cd ../../.."
@@ -10,10 +11,18 @@ alias -- -="cd -"
 alias d="cd ~/Documents/Dropbox"
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
-alias p="cd ~/projects"
+alias p="cd ~/Projects"
+alias sites='cd ~/Sites'
+site () { cd ~/Sites/"$@"; }
+
 alias g="git"
+alias gf="git flow"
 alias h="history"
 alias j="jobs"
+alias screencap=webkit2png
+alias screenshot=webkit2png
+alias shot=webkit2png
+alias restart="sudo apachectl -k restart"
 
 # Detect which `ls` flavor is in use
 if ls --color > /dev/null 2>&1; then # GNU `ls`
@@ -24,6 +33,7 @@ fi
 
 # List all files colorized in long format
 alias l="ls -lF ${colorflag}"
+alias ll="l"
 
 # List all files colorized in long format, including dot files
 alias la="ls -laF ${colorflag}"
@@ -37,6 +47,7 @@ export LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40
 
 # Enable aliases to be sudo’ed
 alias sudo='sudo '
+alias please=sudo
 
 # Get week number
 alias week='date +%V'
@@ -57,6 +68,9 @@ alias flush="dscacheutil -flushcache && killall -HUP mDNSResponder"
 
 # Clean up LaunchServices to remove duplicates in the “Open With” menu
 alias lscleanup="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user && killall Finder"
+
+# Reload QuickLook services
+alias qlr='qlmanage -r'
 
 # View HTTP traffic
 alias sniff="sudo ngrep -d 'en1' -t '^(GET|POST) ' 'tcp and port 80'"
@@ -128,6 +142,7 @@ command -v grunt > /dev/null && alias grunt="grunt --stack"
 
 # Stuff I never really use but cannot delete either because of http://xkcd.com/530/
 alias stfu="osascript -e 'set volume output muted true'"
+alias vol="osascript -e 'set volume 3'"
 alias pumpitup="osascript -e 'set volume 7'"
 
 # Kill all the tabs in Chrome to free up memory

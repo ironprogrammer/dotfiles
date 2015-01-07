@@ -17,6 +17,7 @@ function calc() {
 }
 
 # Create a new directory and enter it
+alias md='mkd'
 function mkd() {
 	mkdir -p "$@" && cd "$_";
 }
@@ -75,6 +76,12 @@ if [ $? -eq 0 ]; then
 		git diff --no-index --color-words "$@";
 	}
 fi;
+
+# take this repo and copy it to somewhere else minus the .git stuff
+function gitexport() {
+	mkdir -p "$1"
+	git archive master | tar -x -C "$1"
+}
 
 # Create a data URL from a file
 function dataurl() {
@@ -243,4 +250,9 @@ function o() {
 # small enough for one screen.
 function tre() {
 	tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX;
+}
+
+# open screen sharing to host
+function vnc() {
+    open vnc://"$1"
 }
