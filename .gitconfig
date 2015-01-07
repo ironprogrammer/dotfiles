@@ -1,5 +1,13 @@
 [alias]
 
+	co = checkout
+	br = branch
+	ci = commit
+	st = status
+	pu = push
+	mg = merge --no-ff
+	last = log -1 HEAD
+
 	# View abbreviated SHA, description, and history graph of the latest 20 commits
 	l = log --pretty=oneline -n 20 --graph --abbrev-commit
 
