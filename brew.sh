@@ -98,5 +98,8 @@ brew install zopfli
 # installation method.
 brew install node
 
+# Coda
+brew install coda-cli
+
 # Remove outdated versions from the cellar.
 brew cleanup
