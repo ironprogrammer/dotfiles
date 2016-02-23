@@ -22,6 +22,7 @@ alias j="jobs"
 alias screencap=webkit2png
 alias screenshot=webkit2png
 alias shot=webkit2png
+alias webkit2png='webkit2png --ignore-ssl-check '
 alias restart="sudo apachectl -k restart"
 alias opt="imageoptim -j -a -q -d ."
 
