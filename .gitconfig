@@ -141,10 +141,16 @@
 
 	# Detect copies as well as renames
 	renames = copies
+	tool = opendiff
 
 [diff "bin"]
+
 	# Use `hexdump` to diff binary files
 	textconv = hexdump -v -C
+
+[difftool]
+
+	prompt = false
 
 [help]
 
@@ -155,6 +161,7 @@
 
 	# Include summaries of merged commits in newly created merge commit messages
 	log = true
+	tool = opendiff
 
 [push]
 
