@@ -19,10 +19,11 @@ alias g="git"
 alias gf="git flow"
 alias h="history"
 alias j="jobs"
+# https://github.com/paulhammond/webkit2png/issues/90#issuecomment-180022208
+alias webkit2png='webkit2png --ignore-ssl-check '
 alias screencap=webkit2png
 alias screenshot=webkit2png
 alias shot=webkit2png
-alias webkit2png='webkit2png --ignore-ssl-check '
 alias restart="sudo apachectl -k restart"
 alias opt="imageoptim -j -a -q -d ."
 
