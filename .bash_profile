@@ -2,6 +2,8 @@
 export PATH="$HOME/bin:$PATH";
 # Prefer Homebrew's Ruby install
 export PATH=$(brew --prefix ruby)/bin:$PATH
+# Add brew sbin executables
+export PATH=/usr/local/sbin:$PATH
 # Add Postgres
 export PATH=$PATH:/Applications/Postgres.app/Contents/Versions/9.4/bin
 export DATABASE_URL=postgres:///$(whoami)
