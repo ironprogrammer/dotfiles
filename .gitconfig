@@ -91,6 +91,10 @@
 
 [core]
 
+	# Use Atom as commit editor
+	# Info: <http://blog.atom.io/2014/03/13/git-integration.html>
+	editor = atom --wait
+
 	# Use custom `.gitignore` and `.gitattributes`
 	excludesfile = ~/.gitignore
 	attributesfile = ~/.gitattributes
