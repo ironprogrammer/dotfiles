@@ -28,6 +28,8 @@ alias screenshot=webkit2png
 alias shot=webkit2png
 alias restart="sudo apachectl -k restart"
 alias opt="imageoptim -a -q"
+alias fingerprint="ssh-keygen -lf "
+alias fingerprintmd5="ssh-keygen -E md5 -lf "
 
 # Detect which `ls` flavor is in use
 if ls --color > /dev/null 2>&1; then # GNU `ls`
