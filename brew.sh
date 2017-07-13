@@ -77,6 +77,7 @@ brew install xz
 
 # Install other useful binaries.
 brew install ack
+brew install dark-mode
 #brew install exiv2
 brew install git
 brew install git-lfs
@@ -90,6 +91,7 @@ brew install rename
 brew install ssh-copy-id
 brew install tree
 brew install vbindiff
+brew install webkit2png
 brew install zopfli
 
 # Install Node.js. Note: this installs `npm` too, using the recommended
