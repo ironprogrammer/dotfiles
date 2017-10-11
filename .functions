@@ -246,3 +246,18 @@ function tre() {
 function vnc() {
     open vnc://"$1"
 }
+
+# Pretty print XML and JSON
+function pretty() {
+	local mimeType=$(file -b --mime-type "$1");
+	local filename=$(basename "$1");
+	local extension="${filename##*.}";
+	local filename="${filename%.*}";
+	if [[ $mimeType == application/xml ]]; then
+		cat "$1" | xmllint --format - > "$filename-pretty.$extension"
+	elif [[ $mimeType == text/html ]]; then
+		cat "$1" | python -m json.tool > "$filename-pretty.$extension"
+	else
+		echo "Just feed me XML or JSON, alright?"
+	fi
+}
