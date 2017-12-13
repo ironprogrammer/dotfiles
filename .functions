@@ -226,7 +226,7 @@ function pretty() {
 	local filename=$(basename "$1");
 	local extension="${filename##*.}";
 	local filename="${filename%.*}";
-	if [[ $mimeType == application/xml ]]; then
+	if [[ $mimeType == application/xml || $mimeType == text/xml ]]; then
 		cat "$1" | xmllint --format - > "$filename-pretty.$extension"
 	elif [[ $mimeType == text/html ]]; then
 		cat "$1" | python -m json.tool > "$filename-pretty.$extension"
