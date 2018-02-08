@@ -89,7 +89,7 @@ alias lscleanup="/System/Library/Frameworks/CoreServices.framework/Frameworks/La
 alias qlr='qlmanage -r'
 
 # Check redirects
-redir () { curl -sIL "$@" | egrep "(HTTP|Location)"; }
+redir () { curl -sIL "$@" | egrep "(HTTP|Location|location)"; }
 
 # Canonical hex dump; some systems have this symlinked
 command -v hd > /dev/null || alias hd="hexdump -C"
