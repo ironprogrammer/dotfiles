@@ -234,3 +234,8 @@ function pretty() {
 		echo "Just feed me XML or JSON, alright?"
 	fi
 }
+
+# Jump to active theme directory https://gist.github.com/knowler/7c0686c4c1876980657f369213287749
+function theme() {
+	cd $(wp theme path)/$(wp option get stylesheet | cut -d/ -f1);
+}
