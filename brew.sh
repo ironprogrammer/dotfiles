@@ -102,5 +102,8 @@ brew install node
 # Coda
 brew install coda-cli
 
+# Install Quick Look utils: https://github.com/sindresorhus/quick-look-plugins
+brew cask install qlcolorcode qlstephen qlmarkdown quicklook-json qlimagesize suspicious-package quicklookase qlvideo
+
 # Remove outdated versions from the cellar.
 brew cleanup
