@@ -18,7 +18,6 @@ alias sites='cd ~/Sites'
 site () { cd ~/Sites/"$@"; }
 
 alias g="git"
-alias gf="git flow"
 alias h="history"
 # https://github.com/paulhammond/webkit2png/issues/90#issuecomment-180022208
 alias webkit2png='webkit2png --ignore-ssl-check '
@@ -48,6 +47,7 @@ alias l="ls -lF ${colorflag}"
 
 # List all files colorized in long format, excluding . and ..
 alias la="ls -lAF ${colorflag}"
+alias ll="la"
 
 # List only directories
 alias lsd="ls -lF ${colorflag} | grep --color=never '^d'"
@@ -63,7 +63,6 @@ alias egrep='egrep --color=auto'
 
 # Enable aliases to be sudo’ed
 alias sudo='sudo '
-alias please=sudo
 
 # Get week number
 alias week='date +%V'
@@ -83,7 +82,7 @@ alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[
 alias ifactive="ifconfig | pcregrep -M -o '^[^\t:]+:([^\n]|\n\t)*status: active'"
 
 # Flush Directory Service cache
-alias flush="dscacheutil -flushcache && sudo killall -HUP mDNSResponder"
+alias flush="dscacheutil -flushcache && killall -HUP mDNSResponder"
 
 # Clean up LaunchServices to remove duplicates in the “Open With” menu
 alias lscleanup="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user && killall Finder"
