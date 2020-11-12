@@ -26,7 +26,11 @@ alias screencap=webkit2png
 alias screenshot=webkit2png
 alias shot=webkit2png
 alias restart="sudo apachectl -k restart"
-alias opt="imageoptim -a -q"
+# https://github.com/JamieMason/ImageOptim-CLI#-usage
+alias opt="imageoptim -a"
+alias opta="imageoptim -a -I"
+alias opto="imageoptim"
+alias optj="imageoptim -j -I"
 alias fingerprint="ssh-keygen -lf "
 alias fingerprintmd5="ssh-keygen -E md5 -lf "
 
