@@ -1,0 +1,30 @@
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[user]
+	name = Brian Alexander
+	email = 824344+ironprogrammer@users.noreply.github.com
+	signingkey = C33D3B979EB926D4
+[push]
+	autosetupremote = true
+[diff]
+	tool = sublime
+[difftool "sublime"]
+	cmd = smerge diff \"\" \"\"
+[merge]
+	tool = sublime
+[mergetool "sublime"]
+	cmd = smerge mergetool \"\" --base \"\" --theirs \"\" --mine \"\"
+[mergetool]
+	prompt = false
+[core]
+	excludesfile = /Users/brian/.gitignore_global
+[credential]
+	helper = 
+	helper = /usr/local/share/gcm-core/git-credential-manager
+[credential "https://dev.azure.com"]
+	useHttpPath = true
+[commit]
+	gpgsign = true
