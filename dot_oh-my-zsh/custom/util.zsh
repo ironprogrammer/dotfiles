@@ -212,49 +212,48 @@ alias wifi='network-toggle "Wi-Fi"'
 
 # Start a PHP server from a directory, optionally specifying the port
 function phpserver() {
-local port="${1:-4000}";
-local ip=$(ipconfig getifaddr en1);
-sleep 1 && open "http://${ip}:${port}/" &
-php -S "${ip}:${port}";
+	local port="${1:-4000}";
+	local ip=$(ipconfig getifaddr en1);
+	sleep 1 && open "http://${ip}:${port}/" &
+	php -S "${ip}:${port}";
 }
 
 # Create a new directory and enter it
 alias md='mkd'
 function mkd() {
-mkdir -p "$@" && cd "$_";
+	mkdir -p "$@" && cd "$_";
 }
 
 # One of @janmoesen’s ProTip™s
 export PERL_LWP_SSL_VERIFY_HOSTNAME=0
 for method in GET HEAD POST PUT DELETE TRACE OPTIONS; do
-alias "${method}"="lwp-request -m '${method}'"
+	alias "${method}"="lwp-request -m '${method}'"
 done
 
 # Check redirects
 function redir() {
-echo Inspecting redirect chain for $1...
-curl -sIL "$@" | egrep -i "^([[:space:]]*$|HTTP|server|location|x-powered-by)";
+	echo Inspecting redirect chain for $1...
+	curl -sIL "$@" | egrep -i "^([[:space:]]*$|HTTP|server|location|x-powered-by)";
 }
 
 # Change working directory to the top-most Finder window location
 function cdf() { # short for `cdfinder`
-cd "$(osascript -e 'tell app "Finder" to POSIX path of (insertion location as alias)')";
+	cd "$(osascript -e 'tell app "Finder" to POSIX path of (insertion location as alias)')";
 }
 
 # take this repo and copy it to somewhere else minus the .git stuff
 function gitexport() {
-mkdir -p "$1"
-git archive master | tar -x -C "$1"
+	mkdir -p "$1"
+	git archive master | tar -x -C "$1"
 }
 
-# `o` with no arguments opens the current directory, otherwise opens the given
-# location
+# `o` with no arguments opens the current directory, otherwise opens the given location
 function o() {
-if [ $# -eq 0 ]; then
-open .;
-else
-open "$@";
-fi;
+	if [ $# -eq 0 ]; then
+		open .;
+	else
+		open "$@";
+	fi;
 }
 
 alias check-cert=cert
@@ -263,7 +262,7 @@ cert() {
     local show_all=false
     local domain=""
     local port="443"
-    
+
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -303,7 +302,7 @@ cert() {
                 ;;
         esac
     done
-    
+
     if [[ -z "$domain" ]]; then
         echo "Error: No domain specified"
         echo "Use 'cert --help' for usage information."
@@ -311,38 +310,37 @@ cert() {
     fi
 
     echo "Cert info for $domain:$port"
-    
-    
+
     if [[ "$show_all" == true ]]; then
         # Get certificate and extract all domains
         local cert_info=$(openssl s_client -connect "$domain:$port" -servername "$domain" -verify_return_error </dev/null 2>/dev/null)
-        
+
         if [[ $? -ne 0 ]]; then
             echo "Error: Could not connect to $domain:$port"
             return 1
         fi
-        
+
         # Extract Subject Alternative Names
         local sans=$(echo "$cert_info" | openssl x509 -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -1 | sed 's/DNS://g; s/,/\n/g; s/^[[:space:]]*//; s/[[:space:]]*$//' | grep -v '^$')
-        
+
         # Extract Common Name
 ###        local cn=$(echo "$cert_info" | openssl x509 -noout -subject 2>/dev/null | sed 's/.*CN = //' | sed 's/,.*//')
-        
+
         # Output all domains, removing duplicates
         {
             echo "$sans"
 ###            echo "$cn"
         } | grep -v '^$' | sort -u
-        
+
     else
         # Just show Common Name
         local cert_info=$(openssl s_client -connect "$domain:$port" -servername "$domain" -verify_return_error </dev/null 2>/dev/null)
-        
+
         if [[ $? -ne 0 ]]; then
             echo "Error: Could not connect to $domain:$port"
             return 1
         fi
-        
+
         echo "$cert_info" | openssl x509 -noout -subject 2>/dev/null | sed -E 's/^.*CN\s*=\s*([^,]+).*$/\1/'
     fi
 }
