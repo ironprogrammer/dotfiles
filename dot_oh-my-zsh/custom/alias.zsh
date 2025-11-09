@@ -3,6 +3,12 @@ alias dl=d
 alias p="cd ~/Plugins/"
 alias pr="cd ~/Projects/"
 
+alias copy='pbcopy'
+alias pasta='pbpaste'
+alias hoy='echo -n "$(date '+%Y-%m-%d')"'
+# Get best audio quality song track from YouTube videos
+alias getsong='yt-dlp -f bestaudio -o "%(title)s.%(ext)s" "$@"'
+
 # Use bat instead of cat: https://github.com/sharkdp/bat
 alias cat=bat
 # Use `help <command>` for even more betterer
@@ -48,7 +54,6 @@ alias fingerprint="ssh-keygen -lf "
 alias fingerprintmd5="ssh-keygen -E md5 -lf "
 
 alias localip="ipconfig getifaddr en0"
-alias ips="ifconfig -a | grep -o 'inet6\? (addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
 
 # Trim new lines and copy to clipboard
 alias c="tr -d '\n' | pbcopy"
@@ -109,3 +114,6 @@ alias usb="ioreg -p IOUSB -w0 | sed 's/[^o]*o //; s/@.*$//' | grep -v '^Root.*'"
 
 # Cursor Agent
 alias ca='cursor-agent'
+
+# chezmoi
+alias cz='chezmoi'

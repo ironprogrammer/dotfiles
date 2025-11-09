@@ -3,11 +3,21 @@ site () { cd ~/Sites/"$@"; }
 alias sites=site # Shortcut to Sites root
 # Enable completion for the site function
 _site() {
-    local -a sites
-    sites=(~/Sites/*(/:t))
-    _describe 'site' sites
+	local -a sites
+	sites=(~/Sites/*(/:t))
+	_describe 'site' sites
 }
 compdef _site site
+
+# Convert source file audio to MP3
+tomp3() {
+  ffmpeg -i "$1" -vn -ab 128k -ar 44100 -y "${1%.*}.mp3"
+}
+
+# Convert source file video to 720p MP4 with fast compression
+tomp4() {
+  ffmpeg -i "$1" -vf "scale=-2:720" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -y "${1%.*}.mp4"
+}
 
 # Creates symlink pointing local .claude/settings.local.json to ~/.claude/settings.local.json (shared)
 # If local symlink already exists, removes it (clean up)
@@ -53,19 +63,21 @@ claudeme () {
 }
 
 # Converts decimal seconds to MM:SS.ss format
+alias convt=convert_to_time
 convert_to_time() {
-    local total=$1
-    local minutes=$((int(total / 60)))
-    local seconds=$(printf "%.2f" $((total % 60)))
-    printf "%02d:%05.2f\n" $minutes $seconds
+	local total=$1
+	local minutes=$((int(total / 60)))
+	local seconds=$(printf "%.2f" $((total % 60)))
+	printf "%02d:%05.2f\n" $minutes $seconds
 }
 
 # Converts MM:SS.ss format to decimal seconds
+alias convs=convert_to_seconds
 convert_to_seconds() {
-    local time=$1
-    local minutes=${time%%:*}
-    local seconds=${time##*:}
-    printf "%.2f\n" $((minutes * 60.0 + seconds))
+	local time=$1
+	local minutes=${time%%:*}
+	local seconds=${time##*:}
+	printf "%.2f\n" $((minutes * 60.0 + seconds))
 }
 
 # Get external IP (including IPv6)
@@ -76,18 +88,18 @@ ip () { curl --silent -4 http://icanhazip.com; curl --silent -6 http://icanhazip
 # Script via https://a8c.slack.com/archives/C02A76B714Z/p1736392280906459?thread_ts=1736391437.472249&cid=C02A76B714Z
 flush() {
 	echo "🧹 Flushing macOS DNS cache..."
-    sudo dscacheutil -flushcache
-    sudo killall -HUP mDNSResponder
-    echo "✅ MacOS DNS cache cleared!"
+	sudo dscacheutil -flushcache
+	sudo killall -HUP mDNSResponder
+	echo "✅ MacOS DNS cache cleared!"
 
-    echo "\n🌐 Opening Chrome DNS settings..."
-    # Try to open Chrome to the DNS page
-    # The open command will use the default browser if Chrome isn't found
-    open -a "Google Chrome" "chrome://net-internals/#dns" 2>/dev/null || \
-    (echo "⚠️  Couldn't open Chrome directly. Opening in default browser..." && \
-     open "chrome://net-internals/#dns")
+	echo "\n🌐 Opening Chrome DNS settings..."
+	# Try to open Chrome to the DNS page
+	# The open command will use the default browser if Chrome isn't found
+	open -a "Google Chrome" "chrome://net-internals/#dns" 2>/dev/null || \
+	(echo "⚠️  Couldn't open Chrome directly. Opening in default browser..." && \
+	 open "chrome://net-internals/#dns")
 
-    echo "👉 Please click the 'Clear host cache' button in the Chrome tab"
+	echo "👉 Please click the 'Clear host cache' button in the Chrome tab"
 }
 
 # Shortcut for AnyBar https://github.com/tonsky/AnyBar
@@ -213,7 +225,7 @@ alias wifi='network-toggle "Wi-Fi"'
 # Start a PHP server from a directory, optionally specifying the port
 function phpserver() {
 	local port="${1:-4000}";
-	local ip=$(ipconfig getifaddr en1);
+	local ip=$(ipconfig getifaddr en0);
 	sleep 1 && open "http://${ip}:${port}/" &
 	php -S "${ip}:${port}";
 }
@@ -259,88 +271,146 @@ function o() {
 alias check-cert=cert
 # Function to get SSL certificate domains
 cert() {
-    local show_all=false
-    local domain=""
-    local port="443"
+	local show_all=false
+	local domain=""
+	local port="443"
 
-    # Parse arguments
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            -a|--all)
-                show_all=true
-                shift
-                ;;
-            -p|--port)
-                port="$2"
-                shift 2
-                ;;
-            -h|--help)
-                echo "Usage: cert [-a|--all] [-p|--port PORT] <domain>"
-                echo "  -a, --all    Show all Subject Alternative Names + Common Name"
-                echo "  -p, --port   Specify port (default: 443)"
-                echo "  -h, --help   Show this help"
-                echo ""
-                echo "Examples:"
-                echo "  cert google.com              # Show common name only"
-                echo "  cert -a google.com           # Show all domains"
-                echo "  cert -p 8443 example.com     # Custom port"
-                return 0
-                ;;
-            -*)
-                echo "Unknown option: $1"
-                echo "Use 'cert --help' for usage information."
-                return 1
-                ;;
-            *)
-                if [[ -z "$domain" ]]; then
-                    domain="$1"
-                else
-                    echo "Error: Multiple domains specified"
-                    return 1
-                fi
-                shift
-                ;;
-        esac
-    done
+	# Parse arguments
+	while [[ $# -gt 0 ]]; do
+		case $1 in
+			-a|--all)
+				show_all=true
+				shift
+				;;
+			-p|--port)
+				port="$2"
+				shift 2
+				;;
+			-h|--help)
+				echo "Usage: cert [-a|--all] [-p|--port PORT] <domain>"
+				echo "  -a, --all    Show all Subject Alternative Names + Common Name"
+				echo "  -p, --port   Specify port (default: 443)"
+				echo "  -h, --help   Show this help"
+				echo ""
+				echo "Examples:"
+				echo "  cert google.com              # Show common name only"
+				echo "  cert -a google.com           # Show all domains"
+				echo "  cert -p 8443 example.com     # Custom port"
+				return 0
+				;;
+			-*)
+				echo "Unknown option: $1"
+				echo "Use 'cert --help' for usage information."
+				return 1
+				;;
+			*)
+				if [[ -z "$domain" ]]; then
+					domain="$1"
+				else
+					echo "Error: Multiple domains specified"
+					return 1
+				fi
+				shift
+				;;
+		esac
+	done
 
-    if [[ -z "$domain" ]]; then
-        echo "Error: No domain specified"
-        echo "Use 'cert --help' for usage information."
-        return 1
-    fi
+	if [[ -z "$domain" ]]; then
+		echo "Error: No domain specified"
+		echo "Use 'cert --help' for usage information."
+		return 1
+	fi
 
-    echo "Cert info for $domain:$port"
+	echo "Cert info for $domain:$port"
 
-    if [[ "$show_all" == true ]]; then
-        # Get certificate and extract all domains
-        local cert_info=$(openssl s_client -connect "$domain:$port" -servername "$domain" -verify_return_error </dev/null 2>/dev/null)
+	if [[ "$show_all" == true ]]; then
+		# Get certificate and extract all domains
+		local cert_info=$(openssl s_client -connect "$domain:$port" -servername "$domain" -verify_return_error </dev/null 2>/dev/null)
 
-        if [[ $? -ne 0 ]]; then
-            echo "Error: Could not connect to $domain:$port"
-            return 1
-        fi
+		if [[ $? -ne 0 ]]; then
+			echo "Error: Could not connect to $domain:$port"
+			return 1
+		fi
 
-        # Extract Subject Alternative Names
-        local sans=$(echo "$cert_info" | openssl x509 -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -1 | sed 's/DNS://g; s/,/\n/g; s/^[[:space:]]*//; s/[[:space:]]*$//' | grep -v '^$')
+		# Extract Subject Alternative Names
+		local sans=$(echo "$cert_info" | openssl x509 -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -1 | sed 's/DNS://g; s/,/\n/g; s/^[[:space:]]*//; s/[[:space:]]*$//' | grep -v '^$')
 
-        # Extract Common Name
+		# Extract Common Name
 ###        local cn=$(echo "$cert_info" | openssl x509 -noout -subject 2>/dev/null | sed 's/.*CN = //' | sed 's/,.*//')
 
-        # Output all domains, removing duplicates
-        {
-            echo "$sans"
+		# Output all domains, removing duplicates
+		{
+			echo "$sans"
 ###            echo "$cn"
-        } | grep -v '^$' | sort -u
+		} | grep -v '^$' | sort -u
 
-    else
-        # Just show Common Name
-        local cert_info=$(openssl s_client -connect "$domain:$port" -servername "$domain" -verify_return_error </dev/null 2>/dev/null)
+	else
+		# Just show Common Name
+		local cert_info=$(openssl s_client -connect "$domain:$port" -servername "$domain" -verify_return_error </dev/null 2>/dev/null)
 
-        if [[ $? -ne 0 ]]; then
-            echo "Error: Could not connect to $domain:$port"
-            return 1
-        fi
+		if [[ $? -ne 0 ]]; then
+			echo "Error: Could not connect to $domain:$port"
+			return 1
+		fi
 
-        echo "$cert_info" | openssl x509 -noout -subject 2>/dev/null | sed -E 's/^.*CN\s*=\s*([^,]+).*$/\1/'
-    fi
+		echo "$cert_info" | openssl x509 -noout -subject 2>/dev/null | sed -E 's/^.*CN\s*=\s*([^,]+).*$/\1/'
+	fi
+}
+
+# NATO phonetic alphabet converter
+function nato() {
+	typeset -A DICTIONARY
+	DICTIONARY=(
+		a Alfa
+		b Bravo
+		c Charlie
+		d Delta
+		e Echo
+		f Foxtrot
+		g Golf
+		h Hotel
+		i India
+		j Juliett
+		k Kilo
+		l Lima
+		m Mike
+		n November
+		o Oscar
+		p Papa
+		q Quebec
+		r Romeo
+		s Sierra
+		t Tango
+		u Uniform
+		v Victor
+		w Whiskey
+		x X-ray
+		y Yankee
+		z Zulu
+		1 One
+		2 Two
+		3 Three
+		4 Four
+		5 Five
+		6 Six
+		7 Seven
+		8 Eight
+		9 Nine
+		0 Zero
+	)
+
+	for word in "$@"; do
+		letters=()
+		# Convert word to lowercase and split into characters
+		for char in ${(s::)${(L)word}}; do
+			# Look up in dictionary, use char itself as fallback
+			letters+=("${DICTIONARY[$char]:-$char}")
+		done
+		echo "${letters[*]}"
+	done
+}
+
+# Get all IP addresses (IPv4 and IPv6)
+ips() {
+  ifconfig -a | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}|([a-fA-F0-9:]+:+)+[a-fA-F0-9]+'
 }
