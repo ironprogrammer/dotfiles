@@ -1,3 +1,9 @@
+# https://ghostty.org/docs/config/reference
+
 theme = Citruszest
 # theme = GitHub Dark
 # theme = Vercel
+
+# cursor-style = block
+adjust-cursor-thickness = 20
+keybind = shift+enter=text:\x1b\r

@@ -60,6 +60,80 @@ claudeme () {
 
 	ln -s "$src" "$dest" \
 		&& echo "Created symlink from $src to $dest"
+
+	echo "You might want to add the .claude directory to .gitignore."
+}
+
+# Creates symlink pointing local AGENTS.md to ~/.config/agents/AGENTS.md (shared)
+# If .claude directory exists, also creates CLAUDE.md symlink for Claude Code compatibility
+# If local symlink already exists, removes it (clean up)
+# If local file already exists (not a symlink), ask for confirmation before replacing with symlink (overwrites)
+agentsme () {
+	local src="$HOME/.config/agents/AGENTS.md" # file to symlink to (immutable)
+	local dest="$PWD/AGENTS.md" # local file or symlink
+
+	# Ensure source file exists
+	if [ ! -f "$src" ]; then
+		echo "Error: Source file $src does not exist"
+		echo "Create it first or initialize with: mkdir -p ~/.config/agents && touch $src"
+		return 1
+	fi
+
+	# Check for symlink
+	if [ -L "$dest" ]; then
+		cat "$dest"
+		read "confirm?$dest symlink already exists. Delete? (y/N) "
+		if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+			echo "Aborting."
+			return 1
+		fi
+
+		# User wishes to remove the symlink
+		echo "Removing existing symlink at $dest"
+		rm "$dest"
+		return 0
+	fi
+
+	# Check for local file
+	if [ -e "$dest" ]; then
+		cat "$dest"
+		read "confirm?$dest already exists. Overwrite with symlink? (y/N) "
+		if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+			echo "Aborting."
+			return 1
+		fi
+
+		# User wishes to replace existing file with symlink
+		echo "Removing existing file at $dest"
+		rm "$dest"
+	fi
+
+	# Create AGENTS.md symlink
+	ln -s "$src" "$dest" \
+		&& echo "Created symlink from $src to $dest"
+
+	# If .claude directory exists, also create CLAUDE.md symlink for Claude Code
+	if [ -d "$PWD/.claude" ]; then
+		local claude_dest="$PWD/CLAUDE.md"
+		
+		# Check if CLAUDE.md already exists
+		if [ -L "$claude_dest" ]; then
+			echo "CLAUDE.md symlink already exists, skipping"
+		elif [ -e "$claude_dest" ]; then
+			cat "$claude_dest"
+			read "confirm?CLAUDE.md already exists. Overwrite with symlink? (y/N) "
+			if [[ "$confirm" =~ ^[Yy]$ ]]; then
+				rm "$claude_dest"
+				ln -s "$src" "$claude_dest" \
+					&& echo "Created symlink from $src to $claude_dest"
+			fi
+		else
+			ln -s "$src" "$claude_dest" \
+				&& echo "Created symlink from $src to $claude_dest"
+		fi
+	fi
+
+	echo "You might want to add AGENTS.md and CLAUDE.md to .gitignore."
 }
 
 # Converts decimal seconds to MM:SS.ss format
@@ -125,7 +199,7 @@ anybar() {
 }
 
 # Delete current local git branch, and optionally remote branch
-gbrd() {
+gbrd() {	
 	local branch=$(git rev-parse --abbrev-ref HEAD)
 	local head_branch=$(git remote show origin | awk '/HEAD branch/ {print $NF}')
 	if [ ${branch} = ${head_branch} ]; then

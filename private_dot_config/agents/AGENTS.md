@@ -17,8 +17,9 @@ At the start of each session:
 2.  **Check project state:**
 
     ```bash
+    # At a minimum, review recent commits
     git status
-    git log --oneline -5  # Review recent commits
+    git log --oneline -5
     ```
 
 3.  **Identify current phase** from `PLAN.md` and understand what has been completed.
@@ -123,20 +124,20 @@ We are often working inside the plugin directory. The core WordPress development
 When working on a plugin, this one-time setup may be required to link this repo to the local WordPress environment:
 
 ```bash
-# PLUGIN-SLUG is derived from the main PHP file in this repo (e.g. setlist-player.php)
+# plugin-slug is derived from the main PHP file in this repo (e.g. setlist-player.php)
 
 # Verify that plugin has been symlinked in dev env (run from the WP root, not plugin root)
 # cd ~/Sites/wordpress-develop/src
 wp plugin list
-# Check that PLUGIN-SLUG is listed
+# Check that <plugin-slug> is listed
 
 # Symlink current directory to local WordPress plugins
 # Assumes you are in the project root
-ln -s $(pwd) ~/Sites/wordpress-develop/src/wp-content/plugins/PLUGIN-SLUG
+ln -s $(pwd) ~/Sites/wordpress-develop/src/wp-content/plugins/<plugin-slug>
 
 # Install via WP-CLI (run from the WP root, not plugin root)
 # cd ~/Sites/wordpress-develop/src
-wp plugin activate PLUGIN-SLUG
+wp plugin activate <plugin-slug>
 ```
 
 **Block development:**
@@ -185,13 +186,13 @@ curl -u admin:<app-password> \
 
 **Managing Credentials via WP-CLI:**
 
-If the above credentials do not work, or this is for a new test env, these steps outline how to obtain a new app password:
+If at some point the above credentials do not work, or this is for a new test env, these steps outline how to obtain a new app password:
 
 ```bash
 # Create new application password
 wp user application-password create admin "App Name"
 
-# List existing application passwords
+# List existing application passwords (returns UUID)
 wp user application-password list admin
 
 # Revoke application password
@@ -211,7 +212,7 @@ When mistakes or oversights occur during development:
 
 ## Agent-Authored Additions
 
-(This section contains improvements added by AI agents during development)
+(This section contains improvements added by AI agents during development.)
 
 -----
 

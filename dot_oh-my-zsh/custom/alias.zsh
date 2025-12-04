@@ -37,6 +37,10 @@ q() {
     llm "$@" | bat -l md -P --plain
 }
 
+# Workaround for: zsh: correct 'test' to 'tests' [nyae]?
+# Just has zsh skip autocorrection for npm command
+alias npm='nocorrect npm'
+
 # https://github.com/paulhammond/webkit2png/issues/90#issuecomment-180022208
 alias webkit2png='webkit2png --ignore-ssl-check '
 alias screencap=webkit2png
