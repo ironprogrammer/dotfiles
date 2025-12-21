@@ -8,6 +8,7 @@ alias pasta='pbpaste'
 alias hoy='echo -n "$(date '+%Y-%m-%d')"'
 # Get best audio quality song track from YouTube videos
 alias getsong='yt-dlp -f bestaudio -o "%(title)s.%(ext)s" "$@"'
+alias getsongpart='yt-dlp -f bestaudio --download-sections "*$2-$3" -o "%(title)s.%(ext)s" "$1"'
 
 # Use bat instead of cat: https://github.com/sharkdp/bat
 alias cat=bat
@@ -69,7 +70,7 @@ alias cleanup="find . -type f -name '*.DS_Store' -ls -delete"
 alias brewclean="sudo chown -R $(whoami) $(brew --prefix)/Cellar/* && brew cleanup"
 
 # Periodically delete and restart autoupdate to ensure latest features available: https://github.com/DomT4/homebrew-autoupdate
-alias brewautoup=brew autoupdate delete && brew autoupdate start 43200 --upgrade --cleanup --immediate --sudo
+alias brewautoup="brew autoupdate delete && brew autoupdate start 43200 --upgrade --cleanup --immediate --sudo"
 
 # Show/hide hidden files in Finder
 alias show="defaults write com.apple.finder AppleShowAllFiles -bool true && killall Finder"

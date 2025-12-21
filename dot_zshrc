@@ -122,3 +122,7 @@ export GPG_TTY
 # Set Sublime Text as default editor from terminal
 export EDITOR="subl -n -w"
 export VISUAL="subl -n -w"
+
+
+export PATH=$HOME/bin:~/.config/phpmon/bin:$PATH
+
