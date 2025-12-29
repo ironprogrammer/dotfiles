@@ -632,3 +632,60 @@ function nato() {
 ips() {
   ifconfig -a | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}|([a-fA-F0-9:]+:+)+[a-fA-F0-9]+'
 }
+
+# Function: checkcanonical
+# Description: Fetches a given URL and checks for canonical link tags in the HTML head.
+# Usage: checkcanonical <url> (e.g., checkcanonical https://brianalexander.com/?cst)
+checkcanonical() {
+    if [[ -z "$1" ]]; then
+        echo "Error: Please provide a URL (e.g., checkcanonical https://example.com)"
+        return 1
+    fi
+
+    local url="$1"
+    local html_content
+    local user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+    echo "Fetching $url..."
+
+    # Fetch the URL content
+    html_content=$(curl -L -s -m 10 -A "$user_agent" "$url" 2>/dev/null)
+
+    if [[ -z "$html_content" ]]; then
+        echo "Error: Could not retrieve content from $url"
+        return 1
+    fi
+
+    # Extract canonical links
+    local canonical_tags
+    canonical_tags=$(
+        echo "$html_content" | \
+        grep -oEi '<link[^>]*rel="canonical"[^>]*href="[^"]+"[^>]*>' | \
+        grep -oEi 'href="[^"]+"' | \
+        sed -E 's/href="([^"]+)".*/\1/'
+    )
+
+    if [[ -n "$canonical_tags" ]]; then
+        local tag_count=$(echo "$canonical_tags" | wc -l | tr -d ' ')
+
+        if [[ "$tag_count" -gt 1 ]]; then
+            echo "\n⚠️  WARNING: Multiple canonical tags found (should only have one):"
+            echo "$canonical_tags" | while read -r tag; do
+                echo "   -> $tag"
+            done
+        else
+            echo "\n✅ Canonical URL found:"
+            echo "   -> $canonical_tags"
+
+            # Compare with input URL
+            if [[ "$canonical_tags" == "$url" ]]; then
+                echo "\n📌 This page is its own canonical (self-referencing)"
+            else
+                echo "\n📌 This is an alternate page pointing to the canonical above"
+            fi
+        fi
+    else
+        echo "\n❌ No canonical tag found"
+        echo "   This page does not specify a canonical URL"
+    fi
+}
