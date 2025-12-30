@@ -460,10 +460,93 @@ for method in GET HEAD POST PUT DELETE TRACE OPTIONS; do
 	alias "${method}"="lwp-request -m '${method}'"
 done
 
-# Check redirects
+# Check redirects with enhanced diagnostics
 function redir() {
-	echo Inspecting redirect chain for $1...
-	curl -sIL "$@" | egrep -i "^([[:space:]]*$|HTTP|server|location|x-powered-by)";
+	if [[ -z "$1" ]]; then
+		echo "Usage: redir <url>"
+		echo "  Shows redirect chain and diagnostic information"
+		return 1
+	fi
+
+	local url="$1"
+	local max_time="${2:-15}"  # Default 15 second timeout
+
+	echo "🔍 Inspecting redirect chain for: $url"
+	echo ""
+
+	# Try HEAD request first (faster, less bandwidth)
+	local head_response=$(curl -sIL "$url" --max-time "$max_time" -w "\nFINAL_URL:%{url_effective}\nHTTP_CODE:%{http_code}\nREDIRECTS:%{num_redirects}\nTOTAL_TIME:%{time_total}" 2>&1)
+	local head_exit_code=$?
+
+	# Check if HEAD request failed with 405 or other errors
+	if [[ $head_exit_code -ne 0 ]] || echo "$head_response" | grep -q "HTTP/[12].[01] 405"; then
+		echo "⚠️  HEAD request failed (Method Not Allowed or timeout)"
+		echo "   Falling back to GET request..."
+		echo ""
+
+		# Fall back to GET request
+		local get_response=$(curl -sL "$url" --max-time "$max_time" -D /dev/stderr -o /dev/null -w "\nFINAL_URL:%{url_effective}\nHTTP_CODE:%{http_code}\nREDIRECTS:%{num_redirects}\nTOTAL_TIME:%{time_total}" 2>&1)
+		local get_exit_code=$?
+
+		if [[ $get_exit_code -ne 0 ]]; then
+			echo "❌ GET request also failed"
+			echo "   Exit code: $get_exit_code"
+			echo "   This may indicate:"
+			echo "   - Network connectivity issues"
+			echo "   - DNS resolution failure"
+			echo "   - Connection timeout (try increasing timeout)"
+			echo "   - Server is blocking requests"
+			return 1
+		fi
+
+		# Parse and display GET results
+		local response="$get_response"
+		local method="GET"
+	else
+		# HEAD request succeeded
+		local response="$head_response"
+		local method="HEAD"
+	fi
+
+	# Extract metadata from curl output
+	local final_url=$(echo "$response" | grep "FINAL_URL:" | cut -d':' -f2-)
+	local http_code=$(echo "$response" | grep "HTTP_CODE:" | cut -d':' -f2)
+	local num_redirects=$(echo "$response" | grep "REDIRECTS:" | cut -d':' -f2)
+	local total_time=$(echo "$response" | grep "TOTAL_TIME:" | cut -d':' -f2)
+
+	# Display redirect chain
+	echo "📊 Redirect Chain:"
+	echo "$response" | egrep -i "^(HTTP|location:)" | while read -r line; do
+		if [[ "$line" =~ ^HTTP ]]; then
+			echo "   $line"
+		elif [[ "$line" =~ ^[Ll]ocation: ]]; then
+			echo "   └─> $(echo "$line" | cut -d' ' -f2-)"
+		fi
+	done
+
+	echo ""
+	echo "📈 Summary:"
+	echo "   Method Used: $method"
+	echo "   Redirect Count: $num_redirects"
+	echo "   Final URL: $final_url"
+	echo "   Final Status: $http_code"
+	echo "   Total Time: ${total_time}s"
+
+	# Additional diagnostics
+	if [[ "$num_redirects" -gt 3 ]]; then
+		echo ""
+		echo "⚠️  Warning: $num_redirects redirects detected (>3 may impact SEO and performance)"
+	fi
+
+	if (( $(echo "$total_time > 5" | bc -l 2>/dev/null || echo 0) )); then
+		echo ""
+		echo "⚠️  Warning: Redirect chain took ${total_time}s (>5s may impact user experience)"
+	fi
+
+	# Show server and security headers
+	echo ""
+	echo "🔒 Headers:"
+	echo "$response" | egrep -i "^(server|x-powered-by|strict-transport-security|x-frame-options|x-content-type-options):" | sed 's/^/   /'
 }
 
 # Change working directory to the top-most Finder window location
