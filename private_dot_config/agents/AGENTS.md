@@ -4,6 +4,8 @@
 
 This document provides guidelines for AI assistants working on this project. It covers session initialization, workflow processes, development standards, and project-specific configuration.
 
+Prefer command line utilities over custom scripts when available.
+
 ## Session Initialization
 
 At the start of each session:
@@ -31,11 +33,13 @@ At the start of each session:
 **Before starting a new phase:**
 
   * List all steps in the phase for human review.
+  * Ensure that there is a clear successful outcome defined, which can be tested/validated as work progresses.
   * **STOP and wait for confirmation before proceeding.**
 
 **Within a phase:**
 
   * Implement approved steps.
+  * Check work against defined outcomes (tests, final artifact/deliverable, resultant behavior, etc).
   * Ask for clarification if anything becomes unclear.
   * Mark off checkboxes in `PLAN.md` as items are completed.
   * Save `PLAN.md` after each checkbox update.
