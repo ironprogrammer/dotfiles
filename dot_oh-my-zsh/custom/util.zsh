@@ -19,38 +19,136 @@ tomp4() {
   ffmpeg -i "$1" -vf "scale=-2:720" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -y "${1%.*}.mp4"
 }
 
-# Creates symlink pointing local .claude/settings.local.json to ~/.claude/settings.local.json (shared)
-# If local symlink already exists, removes it (clean up)
-# If local file already exists (not a symlink), ask for confirmation before replacing with symlink (overwrites)
+# Get best audio quality song track from YouTube videos
+getsong() {
+  yt-dlp -f bestaudio -o "%(title)s.%(ext)s" "$@"
+}
+getsongpart() {
+  yt-dlp -f bestaudio --download-sections "*$2-$3" -o "%(title)s.%(ext)s" "$1"
+}
+# Make any audio a ringtone
+2m4a() {
+  ffmpeg -i "$1" -t 30 -c:a aac "${1%.*}.m4a"
+}
+
+claudecontinue() {
+    local target_input=""
+    local mins_mode=false
+    local secs=0
+
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -m|--minutes)
+                mins_mode=true
+                shift
+                target_input=$1
+                shift
+                ;;
+            *)
+                target_input=$1
+                shift
+                ;;
+        esac
+    done
+
+    if [[ -z "$target_input" ]]; then
+        echo "Usage:"
+        echo "  claudecontinue 15:30       (Wait until next 3:30 PM)"
+        echo "  claudecontinue 17          (Wait until next 5:00 PM)"
+        echo "  claudecontinue -m 120      (Wait 120 minutes)"
+        return 1
+    fi
+
+    if $mins_mode; then
+        # Traditional minutes logic
+        secs=$(( target_input * 60 ))
+    else
+        # Time-of-day logic
+        local now=$(date +%s)
+        
+        # Normalize input: remove colons, then pad to 4 digits (e.g., 5 -> 0500, 1730 -> 1730)
+        local clean_time="${target_input//:/}"
+        if [[ ${#clean_time} -le 2 ]]; then
+            # If user typed '5' or '17', treat as '0500' or '1700'
+            clean_time="$(printf "%02d00" $clean_time)"
+        else
+            # Ensure it's 4 digits for the date parser (e.g., 900 -> 0900)
+            clean_time="$(printf "%04d" $clean_time)"
+        fi
+
+        # Get the epoch for that time TODAY
+        # -j = don't set time, -f = input format
+        local target_epoch=$(date -j -f "%H%M" "$clean_time" +%s 2>/dev/null)
+        
+        if [[ $? -ne 0 ]]; then
+            echo "Error: Invalid time format. Use HH, HHMM, or HH:MM (24-hr)."
+            return 1
+        fi
+
+        # If target is in the past, add 1 day (86400 seconds)
+        if (( target_epoch <= now )); then
+            target_epoch=$(( target_epoch + 86400 ))
+        fi
+        
+        secs=$(( target_epoch - now ))
+    fi
+
+    # --- Timer UI Logic (Modified from your original) ---
+    local start_time=$(date +%s)
+    local end_time=$(( start_time + secs ))
+    local resume_time=$(date -r "$end_time" +"%H:%M:%S")
+
+    echo "Target time: $resume_time (Waiting $(( secs / 60 ))m $(( secs % 60 ))s)"
+
+    while [ $(date +%s) -lt $end_time ]; do
+        local now=$(date +%s)
+        local left=$(( end_time - now ))
+        local elapsed=$(( now - start_time ))
+        
+        # Prevent division by zero if secs is 0
+        local percent=100
+        [[ $secs -gt 0 ]] && percent=$(( elapsed * 100 / secs ))
+        
+        local filled=$(( percent / 5 ))
+        local empty=$(( 20 - filled ))
+        local bar_in="${(l:filled::#:)}"
+        local bar_out="${(l:empty::-:)}"
+        
+        printf "\r[%s%s] %d%% (%02d:%02d:%02d left)" \
+            "$bar_in" "$bar_out" "$percent" \
+            $(( left / 3600 )) $(( (left % 3600) / 60 )) $(( left % 60 ))
+        
+        sleep 1
+    done
+
+    echo -e "\n\aTime's up! Resuming Claude session..."
+    claude --continue --permission-mode acceptEdits "continue"
+}
+
+# Copies ~/.claude/settings.local.json to local .claude/settings.local.json
+# If local file or symlink already exists, ask for confirmation before overwriting
+# Rerun to update local copy from shared template
 claudeme () {
-	local src="$HOME/.claude/settings.local.json" # file to symlink to (immutable)
-	local dest="$PWD/.claude/settings.local.json" # local file or symlink
+	local src="$HOME/.claude/settings.local.json" # shared template file
+	local dest="$PWD/.claude/settings.local.json" # local copy
 
-	# Check for symlink
-	if [ -L "$dest" ]; then
-		cat "$dest"
-		read "confirm?$dest symlink already exists. Delete? (y/N) "
-		if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-			echo "Aborting."
-			return 1
-		fi
-
-		# User wishes to remove the symlink
-		echo "Removing existing symlink at $dest"
-		rm "$dest"
-		return 0
+	# Ensure source file exists
+	if [ ! -f "$src" ]; then
+		echo "Error: Source file $src does not exist"
+		echo "Create it first with your shared settings."
+		return 1
 	fi
 
-	# Check for local file
-	if [ -e "$dest" ]; then
+	# Check for existing symlink or file
+	if [ -L "$dest" ] || [ -e "$dest" ]; then
 		cat "$dest"
-		read "confirm?$dest already exists. Overwrite with symlink? (y/N) "
+		read "confirm?$dest already exists. Overwrite with fresh copy? (y/N) "
 		if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
 			echo "Aborting."
 			return 1
 		fi
 
-		# User wishes to replace existing file with symlink
 		echo "Removing existing file at $dest"
 		rm "$dest"
 	fi
@@ -58,8 +156,8 @@ claudeme () {
 	# Ensure destination directory exists
 	mkdir -p "$(dirname "$dest")"
 
-	ln -s "$src" "$dest" \
-		&& echo "Created symlink at $dest to $src"
+	cp "$src" "$dest" \
+		&& echo "Copied $src to $dest"
 
 	echo "You might want to add the .claude directory to .gitignore."
 }
@@ -280,6 +378,16 @@ jpg2pdf() {
   echo "Created: $output"
 }
 
+2wav() {
+    for file in "$@"; do
+        # Extract filename without extension
+        filename="${file%.*}"
+        # Convert to WAV using your specific flags
+        #ffmpeg -err_detect ignore_err -i "$file" -vn -acodec pcm_s16le "${filename}.wav"
+        ffmpeg -err_detect ignore_err -i "$file" -vn -acodec pcm_s24le -ar 44100 -ac 1 "${filename}.wav"
+    done
+}
+
 # Converts decimal seconds to MM:SS.ss format
 alias convt=convert_to_time
 convert_to_time() {
@@ -340,6 +448,137 @@ anybar() {
 	# send command to AnyBar
 	echo -n "$1" | nc -4u -w0 localhost $port
 	#bash -c "echo -n '$1' > /dev/udp/localhost/$port" # alt, though both output a blank line
+}
+
+# Scan all local branches and delete those that have been merged into main.
+# Uses two signals per branch (most efficient — checks local branches, not full PR history):
+#   1. git branch --merged <main>        — free local check; catches direct/regular merges
+#   2. gh pr list --state merged --head  — per-branch GitHub check; catches squash/rebase PRs
+# Requires: gh CLI (https://cli.github.com). Falls back to signal 1 only if gh is unavailable.
+# Usage: gbrclean [-n]  (-n = dry run, preview only)
+gbrclean() {
+    git rev-parse --abbrev-ref HEAD &>/dev/null || { echo "Not in a git repo."; return 1; }
+
+    local dry_run=false
+    [[ "$1" == "-n" ]] && dry_run=true
+
+    # Detect the repo's actual default branch — never delete this under any circumstances
+    local main_branch
+    main_branch=$(git remote show origin 2>/dev/null | awk '/HEAD branch/ {print $NF}')
+    [[ -z "$main_branch" ]] && main_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||')
+    [[ -z "$main_branch" ]] && main_branch="main"
+
+    local current_branch
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+    local has_gh=false
+    command -v gh &>/dev/null && has_gh=true
+    $has_gh || echo "  (gh CLI not found — using git signal only)"
+
+    echo "Fetching remote refs..."
+    echo ""
+    git fetch --prune origin
+
+    # All local branches except the protected main branch
+    local local_branches=()
+    while IFS= read -r b; do
+        b="${b//\* /}"      # strip leading "* " from current branch marker
+        b="${b// /}"        # trim whitespace
+        [[ "$b" == "$main_branch" ]] && continue   # hard exclude — never touch main
+        local_branches+=("$b")
+    done < <(git branch | sed 's/^[* ]*//')
+
+    if [[ ${#local_branches[@]} -eq 0 ]]; then
+        echo "No local branches to check (only $main_branch exists)."
+        return 0
+    fi
+
+    local candidates=()
+    typeset -A source_map
+
+    local total=${#local_branches[@]}
+    local i=0
+
+    for b in "${local_branches[@]}"; do
+        (( i++ ))
+        printf "\033[2K\r  Checking [%d/%d] %s" "$i" "$total" "$b"
+
+        local reason=""
+
+        # Signal 1: free local check
+        if git branch --merged "$main_branch" | grep -qx "  $b\|* $b"; then
+            reason="merged"
+        fi
+
+        # Signal 2: gh per-branch check (only if not already caught by signal 1)
+        if [[ -z "$reason" ]] && $has_gh; then
+            gh pr list --state merged --head "$b" --limit 1 --json number --jq '.[0].number' 2>/dev/null \
+                | grep -q . && reason="PR merged"
+        fi
+
+        if [[ -n "$reason" ]]; then
+            local sha=$(git rev-parse --short refs/heads/"$b" 2>/dev/null)
+            candidates+=("$b")
+            source_map[$b]="$reason $sha"
+        fi
+    done
+    printf "\033[2K\r"  # clear the progress line
+
+    if [[ ${#candidates[@]} -eq 0 ]]; then
+        echo "No merged branches found. Nothing to clean up."
+        return 0
+    fi
+
+    echo "Branches to clean up:"
+    for b in "${candidates[@]}"; do
+        local note=""
+        [[ "$b" == "$current_branch" ]] && note=" (current — will switch to $main_branch first)"
+        printf "  %-40s [%s]%s\n" "$b" "${source_map[$b]}" "$note"
+    done
+    echo ""
+    echo "💡 Tip: git show <ref> to inspect any branch above before deleting."
+    echo ""
+
+    if $dry_run; then
+        echo "Dry run — no branches deleted. Remove -n to proceed."
+        return 0
+    fi
+
+    read "confirm?Delete all ${#candidates[@]} branch(es) above (local + remote where applicable)? [y/N] "
+    [[ ! "$confirm" =~ ^[Yy]$ ]] && echo "Aborted." && return 0
+    echo ""
+
+    # Switch away if current branch is being deleted
+    for b in "${candidates[@]}"; do
+        if [[ "$b" == "$current_branch" ]]; then
+            echo "Switching to '$main_branch'..."
+            git checkout "$main_branch" || return 1
+            echo ""
+            break
+        fi
+    done
+
+    local green='\033[32m'
+    local red='\033[31m'
+    local dim='\033[2m'
+    local reset='\033[0m'
+    local deleted_count=0
+
+    for b in "${candidates[@]}"; do
+        local sha="${source_map[$b]##* }"  # last word of "PR merged abc1234"
+        local scope="local"
+
+        git branch -D "$b" &>/dev/null
+        if git ls-remote --exit-code --heads origin "$b" &>/dev/null; then
+            git push -d origin "$b" &>/dev/null && scope="local + remote"
+        fi
+
+        printf "${green}✓${reset} %-42s ${dim}%s  %s${reset}\n" "$b" "$sha" "$scope"
+        (( deleted_count++ ))
+    done
+
+    echo ""
+    echo "Done. ${deleted_count} branch(es) deleted."
 }
 
 # Delete current local git branch, and optionally remote branch
