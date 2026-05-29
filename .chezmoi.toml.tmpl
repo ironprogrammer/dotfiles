@@ -1,5 +1,6 @@
+{{- $signingkey := promptStringOnce . "signingkey" "GPG signing key ID" -}}
 [data]
-	signingkey = "EE145A2C0FD045C8"
+	signingkey = {{ $signingkey | quote }}
 [merge]
     command = "meld"
     args = [{{`"{{ .Destination }}", "{{ .Source }}", "{{ .Target }}"`}}]
