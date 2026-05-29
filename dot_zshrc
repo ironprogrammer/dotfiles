@@ -134,3 +134,6 @@ export VISUAL="subl -n -w"
 
 export PATH=$HOME/bin:~/.config/phpmon/bin:$PATH
 
+
+# shades CLI
+shades() { /opt/homebrew/bin/python3 /Users/brian/Sites/shades/shades.py "$@"; }

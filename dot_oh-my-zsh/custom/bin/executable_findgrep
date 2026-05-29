@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+# find all files in the current folder and below, then grep each of them for the given string
+if [[ -z "$1" ]]; then
+  echo "Usage: findgrep <query>"
+  exit 1
+fi
+
+local QUERY=$1
+local MATCHES=$(find . -type f ! -name "*.svn*" ! -name "*.git*" -follow | xargs grep --ignore-case --line-number --no-messages $QUERY)
+local OUTPUT=$(printf '%s\n' "${MATCHES[@]}" | grep -v "Binary file")
+
+printf '%s\n' "${OUTPUT[@]}"

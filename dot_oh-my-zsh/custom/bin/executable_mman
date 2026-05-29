@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+# Show `man` output in Preview
+if [[ -z "$1" ]]; then
+    echo "Usage: mman <command>"
+    exit 1
+fi
+man -t "$1" | open -fa Preview

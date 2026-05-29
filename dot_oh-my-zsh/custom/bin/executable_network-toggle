@@ -1,0 +1,20 @@
+#!/usr/bin/env zsh
+# Toggle network adapter by name
+if [[ -z "$1" ]]; then
+    echo You must specify the network service to toggle.
+    echo -
+    echo Current services:
+    networksetup -listallnetworkservices
+    exit 1
+fi
+
+local adapter=$1
+local status=$(networksetup -getnetworkserviceenabled "${adapter}")
+
+if [[ "${status}" == 'Enabled' ]]; then
+    networksetup -setnetworkserviceenabled "${adapter}" off \
+    && echo "${adapter} disabled."
+else
+    networksetup -setnetworkserviceenabled "${adapter}" on \
+    && echo "${adapter} enabled."
+fi

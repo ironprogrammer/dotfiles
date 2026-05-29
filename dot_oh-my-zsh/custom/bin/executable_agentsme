@@ -1,0 +1,70 @@
+#!/usr/bin/env zsh
+# Creates symlink pointing local AGENTS.md to ~/.config/agents/AGENTS.md (shared)
+local src="$HOME/.config/agents/AGENTS.md" # file to symlink to (immutable)
+local dest="$PWD/AGENTS.md" # local file or symlink
+
+# Ensure source file exists
+if [[ ! -f "$src" ]]; then
+    echo "Error: Source file $src does not exist"
+    echo "Create it first or initialize with: mkdir -p ~/.config/agents && touch $src"
+    exit 1
+fi
+
+# Check for symlink
+if [[ -L "$dest" ]]; then
+    cat "$dest"
+    printf "$dest symlink already exists. Delete? (y/N) "
+    read -r confirm
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        echo "Aborting."
+        exit 0
+    fi
+
+    # User wishes to remove the symlink
+    echo "Removing existing symlink at $dest"
+    rm "$dest"
+    exit 0
+fi
+
+# Check for local file
+if [[ -e "$dest" ]]; then
+    cat "$dest"
+    printf "$dest already exists. Overwrite with symlink? (y/N) "
+    read -r confirm
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        echo "Aborting."
+        exit 1
+    fi
+
+    # User wishes to replace existing file with symlink
+    echo "Removing existing file at $dest"
+    rm "$dest"
+fi
+
+# Create AGENTS.md symlink
+ln -s "$src" "$dest" \
+    && echo "Created symlink at $dest to $src"
+
+# If .claude directory exists, also create CLAUDE.md symlink for Claude Code
+if [[ -d "$PWD/.claude" ]]; then
+    local claude_dest="$PWD/CLAUDE.md"
+    
+    # Check if CLAUDE.md already exists
+    if [[ -L "$claude_dest" ]]; then
+        echo "CLAUDE.md symlink already exists, skipping"
+    elif [[ -e "$claude_dest" ]]; then
+        cat "$claude_dest"
+        printf "CLAUDE.md already exists. Overwrite with symlink? (y/N) "
+        read -r confirm
+        if [[ "$confirm" =~ ^[Yy]$ ]]; then
+            rm "$claude_dest"
+            ln -s "$src" "$claude_dest" \
+                && echo "Created symlink at $claude_dest to $src"
+        fi
+    else
+        ln -s "$src" "$claude_dest" \
+            && echo "Created symlink at $claude_dest to $src"
+    fi
+fi
+
+echo "You might want to add AGENTS.md and CLAUDE.md to .gitignore."

@@ -1,0 +1,83 @@
+#!/usr/bin/env zsh
+# Claude session continuation with timer
+local target_input=""
+local mins_mode=false
+local secs=0
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -m|--minutes)
+            mins_mode=true
+            shift
+            target_input=$1
+            shift
+            ;;
+        *)
+            target_input=$1
+            shift
+            ;;
+    esac
+done
+
+if [[ -z "$target_input" ]]; then
+    echo "Usage:"
+    echo "  claudecontinue 15:30       (Wait until next 3:30 PM)"
+    echo "  claudecontinue 17          (Wait until next 5:00 PM)"
+    echo "  claudecontinue -m 120      (Wait 120 minutes)"
+    exit 1
+fi
+
+if $mins_mode; then
+    secs=$(( target_input * 60 ))
+else
+    local now=$(date +%s)
+    local clean_time="${target_input//:/}"
+    if [[ ${#clean_time} -le 2 ]]; then
+        clean_time="$(printf "%02d00" $clean_time)"
+    else
+        clean_time="$(printf "%04d" $clean_time)"
+    fi
+
+    local target_epoch=$(date -j -f "%H%M" "$clean_time" +%s 2>/dev/null)
+    
+    if [[ $? -ne 0 ]]; then
+        echo "Error: Invalid time format. Use HH, HHMM, or HH:MM (24-hr)."
+        exit 1
+    fi
+
+    if (( target_epoch <= now )); then
+        target_epoch=$(( target_epoch + 86400 ))
+    fi
+    
+    secs=$(( target_epoch - now ))
+fi
+
+local start_time=$(date +%s)
+local end_time=$(( start_time + secs ))
+local resume_time=$(date -r "$end_time" +"%H:%M:%S")
+
+echo "Target time: $resume_time (Waiting $(( secs / 60 ))m $(( secs % 60 ))s)"
+
+while [ $(date +%s) -lt $end_time ]; do
+    local now=$(date +%s)
+    local left=$(( end_time - now ))
+    local elapsed=$(( now - start_time ))
+    local percent=100
+    [[ $secs -gt 0 ]] && percent=$(( elapsed * 100 / secs ))
+    
+    local filled=$(( percent / 5 ))
+    local empty=$(( 20 - filled ))
+    local bar_in="${(l:filled::#:)}"
+    local bar_out="${(l:empty::-:)}"
+    
+    printf "\r[%s%s] %d%% (%02d:%02d:%02d left)" \
+        "$bar_in" "$bar_out" "$percent" \
+        $(( left / 3600 )) $(( (left % 3600) / 60 )) $(( left % 60 ))
+    
+    sleep 1
+done
+
+echo -e "\n\aTime's up! Resuming Claude session..."
+# Use full path to claude if needed, or assume it's in PATH
+claude --continue --permission-mode acceptEdits "continue"

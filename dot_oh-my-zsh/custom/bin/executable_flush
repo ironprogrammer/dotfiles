@@ -1,0 +1,14 @@
+#!/usr/bin/env zsh
+# Flush macOS DNS cache
+echo "🧹 Flushing macOS DNS cache..."
+sudo dscacheutil -flushcache
+sudo killall -HUP mDNSResponder
+echo "✅ MacOS DNS cache cleared!"
+
+echo -e "\n🌐 Opening Chrome DNS settings..."
+# Try to open Chrome to the DNS page
+open -a "Google Chrome" "chrome://net-internals/#dns" 2>/dev/null || \
+(echo "⚠️  Couldn't open Chrome directly. Opening in default browser..." && \
+ open "chrome://net-internals/#dns")
+
+echo "👉 Please click the 'Clear host cache' button in the Chrome tab"

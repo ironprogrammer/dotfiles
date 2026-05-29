@@ -6,9 +6,6 @@ alias pr="cd ~/Projects/"
 alias copy='pbcopy'
 alias pasta='pbpaste'
 alias hoy='echo -n "$(date '+%Y-%m-%d')"'
-# Get best audio quality song track from YouTube videos
-alias getsong='yt-dlp -f bestaudio -o "%(title)s.%(ext)s" "$@"'
-alias getsongpart='yt-dlp -f bestaudio --download-sections "*$2-$3" -o "%(title)s.%(ext)s" "$1"'
 
 # Use bat instead of cat: https://github.com/sharkdp/bat
 alias cat=bat
@@ -20,10 +17,6 @@ help() {
 # Use bat for ALL help results -- incompat with cert function's -h|--help parsing @todo
 #alias -g -- -h='-h 2>&1 | bathelp'
 #alias -g -- --help='--help 2>&1 | bathelp'
-# View lines around code changes with syntax highlighting
-batdiff() {
-    git diff --name-only --relative --diff-filter=d -z | xargs -0 bat --diff
-}
 # Pass tail results to bat
 tail() {
     command tail "$@" | bat --paging=never -l log
@@ -37,6 +30,9 @@ alias ccat=cat
 q() {
     llm "$@" | bat -l md -P --plain
 }
+
+alias cc='claude --dangerously-skip-permissions'
+alias claudeup='brew upgrade --cask claude claude-code'
 
 # Workaround for: zsh: correct 'test' to 'tests' [nyae]?
 # Just has zsh skip autocorrection for npm command
@@ -122,3 +118,6 @@ alias ca='cursor-agent'
 
 # chezmoi
 alias cz='chezmoi'
+
+# Friendly alias for the cert script (bin/cert)
+alias check-cert=cert

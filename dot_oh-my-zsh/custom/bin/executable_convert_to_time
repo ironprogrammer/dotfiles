@@ -1,0 +1,11 @@
+#!/usr/bin/env zsh
+# Converts decimal seconds to MM:SS.ss format
+zmodload zsh/mathfunc
+if [[ -z "$1" ]]; then
+    echo "Usage: convert_to_time <seconds>"
+    exit 1
+fi
+total=$1
+minutes=$((int(total / 60)))
+seconds=$(printf "%.2f" $((total % 60)))
+printf "%02d:%05.2f\n" $minutes $seconds

@@ -1,0 +1,16 @@
+#!/usr/bin/env zsh
+# Batch convert audio/video files to WAV (mono, 44.1kHz, 24-bit PCM)
+if [[ -z "$1" ]]; then
+  echo "Usage: towav <input_file1> [input_file2 ...]"
+  exit 1
+fi
+
+for file in "$@"; do
+    if [[ ! -f "$file" ]]; then
+      echo "Error: File '$file' not found"
+      continue
+    fi
+    out="${file%.*}.wav"
+    [[ "$out" == "$file" ]] && out="${file%.*}-converted.wav"
+    ffmpeg -err_detect ignore_err -i "$file" -vn -acodec pcm_s24le -ar 44100 -ac 1 "$out"
+done

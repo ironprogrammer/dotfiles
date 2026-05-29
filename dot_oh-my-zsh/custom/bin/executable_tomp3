@@ -1,0 +1,9 @@
+#!/usr/bin/env zsh
+# Convert source file audio to MP3
+if [[ -z "$1" ]]; then
+  echo "Usage: tomp3 <input_file>"
+  exit 1
+fi
+out="${1%.*}.mp3"
+[[ "$out" == "$1" ]] && out="${1%.*}-converted.mp3"
+ffmpeg -i "$1" -vn -ab 128k -ar 44100 -y "$out"

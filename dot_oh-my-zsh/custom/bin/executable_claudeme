@@ -1,0 +1,33 @@
+#!/usr/bin/env zsh
+# Copies ~/.claude/settings.local.json to local .claude/settings.local.json
+local src="$HOME/.claude/settings.local.json" # shared template file
+local dest="$PWD/.claude/settings.local.json" # local copy
+
+# Ensure source file exists
+if [[ ! -f "$src" ]]; then
+    echo "Error: Source file $src does not exist"
+    echo "Create it first with your shared settings."
+    exit 1
+fi
+
+# Check for existing symlink or file
+if [[ -L "$dest" ]] || [[ -e "$dest" ]]; then
+    cat "$dest"
+    printf "$dest already exists. Overwrite with fresh copy? (y/N) "
+    read -r confirm
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        echo "Aborting."
+        exit 1
+    fi
+
+    echo "Removing existing file at $dest"
+    rm "$dest"
+fi
+
+# Ensure destination directory exists
+mkdir -p "$(dirname "$dest")"
+
+cp "$src" "$dest" \
+    && echo "Copied $src to $dest"
+
+echo "You might want to add the .claude directory to .gitignore."

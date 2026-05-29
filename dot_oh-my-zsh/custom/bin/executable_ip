@@ -1,0 +1,4 @@
+#!/usr/bin/env zsh
+# Get external IP (including IPv6)
+curl --silent -4 http://icanhazip.com
+curl --silent -6 http://icanhazip.com

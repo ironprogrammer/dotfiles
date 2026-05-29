@@ -1,0 +1,118 @@
+#!/usr/bin/env zsh
+# List custom bin scripts and sourced functions with descriptions
+# Usage: t [filter]   — filter matches name OR description (case-insensitive)
+#        t -h         — this help
+
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    sed -n '2,4p' "$0" | sed 's/^# \?//'
+    exit 0
+fi
+
+filter="${1:-}"
+custom_dir="$HOME/.oh-my-zsh/custom"
+bin_dir="$custom_dir/bin"
+self="$(basename "$0")"
+
+if [[ -t 1 ]]; then
+    bold=$'\e[1m'; dim=$'\e[2m'; reset=$'\e[0m'
+else
+    bold=""; dim=""; reset=""
+fi
+
+# First useful comment line after shebang (strip "Description:" prefix; skip "Function:"/"Usage:" boilerplate)
+script_desc() {
+    awk '
+        NR==1 && /^#!/ { next }
+        /^#/ {
+            sub(/^#[[:space:]]*/, "")
+            if (length($0) == 0) next
+            if ($0 ~ /^Function:/ || $0 ~ /^Usage:/) next
+            sub(/^Description:[[:space:]]*/, "")
+            print; exit
+        }
+        /^[^#]/ { exit }
+    ' "$1"
+}
+
+matches() {
+    [[ -z "$filter" ]] && return 0
+    local lc_name="${1:l}" lc_desc="${2:l}" lc_filter="${filter:l}"
+    [[ "$lc_name" == *"$lc_filter"* ]] || [[ "$lc_desc" == *"$lc_filter"* ]]
+}
+
+print_section() {
+    local title="$1"; shift
+    [[ $# -eq 0 ]] && return
+    printf "${bold}%s${reset}\n" "$title"
+    local entry name desc
+    for entry in "$@"; do
+        name="${entry%%$'\t'*}"
+        desc="${entry#*$'\t'}"
+        printf "  %-22s ${dim}%s${reset}\n" "$name" "$desc"
+    done
+    echo
+}
+
+# Collect bin scripts (skip self)
+typeset -a bin_lines
+for f in "$bin_dir"/*(N); do
+    [[ -x "$f" && ! -d "$f" ]] || continue
+    name=$(basename "$f")
+    [[ "$name" == "$self" ]] && continue
+    desc=$(script_desc "$f")
+    matches "$name" "$desc" || continue
+    bin_lines+=("$name"$'\t'"$desc")
+done
+bin_lines=("${(@on)bin_lines}")
+
+# Collect sourced functions from custom *.zsh files
+typeset -a func_lines
+while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    name="${line%%$'\t'*}"
+    desc="${line#*$'\t'}"
+    matches "$name" "$desc" || continue
+    func_lines+=("$line")
+done < <(
+    for f in "$custom_dir"/*.zsh(N); do
+        awk '
+            function clean(s) { sub(/^[[:space:]]*#[[:space:]]*/, "", s); return s }
+            function boilerplate(s) {
+                return (s ~ /^Function:/ || s ~ /^Description:/ || s ~ /^Usage:/ \
+                        || s ~ /^See / || s ~ /^From / || s ~ /^https?:/ \
+                        || s ~ /^@/)
+            }
+            /^[[:space:]]*#/ {
+                line = clean($0)
+                if (line == "") next
+                if (desc == "") desc = line
+                else if (boilerplate(desc) && !boilerplate(line)) desc = line
+                next
+            }
+            /^[a-zA-Z][a-zA-Z0-9_-]*[[:space:]]*\(\)/ {
+                name = $1
+                sub(/[[:space:]]*\(.*$/, "", name)
+                if (name !~ /^_/) print name "\t" desc
+                desc = ""; next
+            }
+            /^function[[:space:]]+[a-zA-Z][a-zA-Z0-9_-]*/ {
+                name = $2
+                sub(/[[:space:]]*\(.*$/, "", name)
+                sub(/[[:space:]]*\{.*$/, "", name)
+                if (name !~ /^_/) print name "\t" desc
+                desc = ""; next
+            }
+            /^[[:space:]]*$/ { next }
+            { desc = "" }
+        ' "$f"
+    done
+)
+func_lines=("${(@on)func_lines}")
+
+print_section "BIN SCRIPTS" "${bin_lines[@]}"
+print_section "SOURCED FUNCTIONS" "${func_lines[@]}"
+
+if [[ -n "$filter" && ${#bin_lines} -eq 0 && ${#func_lines} -eq 0 ]]; then
+    echo "No matches for '$filter'"
+    exit 1
+fi

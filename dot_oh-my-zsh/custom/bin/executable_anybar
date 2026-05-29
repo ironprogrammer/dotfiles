@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+# Shortcut for AnyBar https://github.com/tonsky/AnyBar
+local port=1738
+if ! lsof -iUDP:$port > /dev/null 2>&1; then
+    open -a AnyBar \
+    && echo AnyBar launched.
+fi
+
+local cmd="${1:-hollow}"
+
+# send command to AnyBar
+echo -n "$cmd" | nc -4u -w0 localhost $port

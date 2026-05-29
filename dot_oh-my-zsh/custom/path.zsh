@@ -3,7 +3,7 @@
 # path+=('/home/david/pear/bin')
 # or prepend
 # path=('/home/david/pear/bin' $path)
-#path+=('/Users/brian/bin')
+path+=("$ZSH_CUSTOM/bin")
 
 # Homebrew Default (Intel/Rosetta) path
 #path=('/usr/local/bin' $path)

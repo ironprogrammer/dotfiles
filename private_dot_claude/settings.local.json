@@ -22,6 +22,7 @@
       "Bash(npm run:*)",
       "Bash(npm test:*)",
       "Bash(php:*)",
+      "Bash(php artisan:*)",
       "Bash(tree:*)",
       "Bash(wp:*)",
       "WebSearch",

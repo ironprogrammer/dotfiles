@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+# Get best audio quality song track from YouTube videos
+if [[ -z "$1" ]]; then
+  echo "Usage: getsong <url>"
+  exit 1
+fi
+yt-dlp -f bestaudio -o "%(title)s.%(ext)s" "$@"

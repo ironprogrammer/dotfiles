@@ -1,0 +1,8 @@
+#!/usr/bin/env zsh
+# Get a portion of audio from YouTube videos
+if [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]]; then
+  echo "Usage: getsongpart <url> <start_time> <end_time>"
+  echo "Example: getsongpart https://youtube.com/watch?v=... 00:30 01:00"
+  exit 1
+fi
+yt-dlp -f bestaudio --download-sections "*$2-$3" -o "%(title)s.%(ext)s" "$1"

@@ -1,0 +1,25 @@
+#!/usr/bin/env zsh
+# Convert JPG to clean B&W PDF (document scan style)
+if [[ -z "$1" ]]; then
+  echo "Usage: jpg2pdf input.jpg [output.pdf]"
+  exit 1
+fi
+
+local input="$1"
+local output="${2:-${input:r}.pdf}"
+
+if [[ ! -f "$input" ]]; then
+  echo "Error: File '$input' not found"
+  exit 1
+fi
+
+magick "$input" \
+  -colorspace Gray \
+  -normalize \
+  -contrast-stretch 2%x1% \
+  -trim +repage \
+  -sharpen 0x1.0 \
+  -density 300 \
+  "$output"
+
+echo "Created: $output"

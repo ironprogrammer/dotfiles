@@ -1,0 +1,135 @@
+#!/usr/bin/env zsh
+# Scan all local branches and delete those that have been merged into main.
+# Uses two signals per branch (most efficient — checks local branches, not full PR history):
+#   1. git branch --merged <main>        — free local check; catches direct/regular merges
+#   2. gh pr list --state merged --head  — per-branch GitHub check; catches squash/rebase PRs
+# Requires: gh CLI (https://cli.github.com). Falls back to signal 1 only if gh is unavailable.
+# Usage: gbrclean [-n]  (-n = dry run, preview only)
+
+git rev-parse --abbrev-ref HEAD &>/dev/null || { echo "Not in a git repo."; exit 1; }
+
+local dry_run=false
+[[ "$1" == "-n" ]] && dry_run=true
+
+# Detect the repo's actual default branch — never delete this under any circumstances
+local main_branch
+main_branch=$(git remote show origin 2>/dev/null | awk '/HEAD branch/ {print $NF}')
+[[ -z "$main_branch" ]] && main_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||')
+[[ -z "$main_branch" ]] && main_branch="main"
+
+local current_branch
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+local has_gh=false
+command -v gh &>/dev/null && has_gh=true
+$has_gh || echo "  (gh CLI not found — using git signal only)"
+
+echo "Fetching remote refs..."
+echo ""
+git fetch --prune origin
+
+# All local branches except the protected main branch
+local local_branches=()
+while IFS= read -r b; do
+    b="${b//\* /}"      # strip leading "* " from current branch marker
+    b="${b// /}"        # trim whitespace
+    [[ "$b" == "$main_branch" ]] && continue   # hard exclude — never touch main
+    local_branches+=("$b")
+done < <(git branch | sed 's/^[* ]*//')
+
+if [[ ${#local_branches[@]} -eq 0 ]]; then
+    echo "No local branches to check (only $main_branch exists)."
+    exit 0
+fi
+
+local candidates=()
+typeset -A source_map
+
+local total=${#local_branches[@]}
+local i=0
+
+for b in "${local_branches[@]}"; do
+    (( i++ ))
+    printf "\033[2K\r  Checking [%d/%d] %s" "$i" "$total" "$b"
+
+    local reason=""
+
+    # Signal 1: free local check
+    if git branch --merged "$main_branch" | grep -qx "  $b\|* $b"; then
+        reason="merged"
+    fi
+
+    # Signal 2: gh per-branch check (only if not already caught by signal 1)
+    if [[ -z "$reason" ]] && $has_gh; then
+        gh pr list --state merged --head "$b" --limit 1 --json number --jq '.[0].number' 2>/dev/null \
+            | grep -q . && reason="PR merged"
+    fi
+
+    if [[ -n "$reason" ]]; then
+        local sha=$(git rev-parse --short refs/heads/"$b" 2>/dev/null)
+        candidates+=("$b")
+        source_map[$b]="$reason $sha"
+    fi
+done
+printf "\033[2K\r"  # clear the progress line
+
+if [[ ${#candidates[@]} -eq 0 ]]; then
+    echo "No merged branches found. Nothing to clean up."
+    exit 0
+fi
+
+echo "Branches to clean up:"
+for b in "${candidates[@]}"; do
+    local note=""
+    [[ "$b" == "$current_branch" ]] && note=" (current — will switch to $main_branch first)"
+    printf "  %-40s [%s]%s\n" "$b" "${source_map[$b]}" "$note"
+done
+echo ""
+echo "💡 Tip: git show <ref> to inspect any branch above before deleting."
+echo ""
+
+if $dry_run; then
+    echo "Dry run — no branches deleted. Remove -n to proceed."
+    exit 0
+fi
+
+# Need to handle terminal input for read in a script differently if piped,
+# but for a direct script execution this is fine.
+# Note: In a standalone script 'read' might behave differently regarding -q.
+# We'll use a more standard approach.
+printf "Delete all ${#candidates[@]} branch(es) above (local + remote where applicable)? [y/N] "
+read -r confirm
+[[ ! "$confirm" =~ ^[Yy]$ ]] && echo "Aborted." && exit 0
+echo ""
+
+# Switch away if current branch is being deleted
+for b in "${candidates[@]}"; do
+    if [[ "$b" == "$current_branch" ]]; then
+        echo "Switching to '$main_branch'..."
+        git checkout "$main_branch" || exit 1
+        echo ""
+        break
+    fi
+done
+
+local green='\033[32m'
+local red='\033[31m'
+local dim='\033[2m'
+local reset='\033[0m'
+local deleted_count=0
+
+for b in "${candidates[@]}"; do
+    local sha="${source_map[$b]##* }"  # last word of "PR merged abc1234"
+    local scope="local"
+
+    git branch -D "$b" &>/dev/null
+    if git ls-remote --exit-code --heads origin "$b" &>/dev/null; then
+        git push -d origin "$b" &>/dev/null && scope="local + remote"
+    fi
+
+    printf "${green}✓${reset} %-42s ${dim}%s  %s${reset}\n" "$b" "$sha" "$scope"
+    (( deleted_count++ ))
+done
+
+echo ""
+echo "Done. ${deleted_count} branch(es) deleted."
