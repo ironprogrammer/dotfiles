@@ -83,9 +83,17 @@ plugins=(git git-prompt brew wp-cli sublime thefuck)
 plugins+=(zsh-nvm composer)
 #plugins+=(ssh dotenv colorize z)
 
-# Prune zcompdump files left over from previous zsh versions.
-# Must run BEFORE omz sources, because omz's compinit creates the current-version dump.
-# So this fires only when the current dump is missing (i.e. right after a zsh upgrade).
+# Prune stale zcompdump files left over from previous zsh versions.
+#
+# OMZ's oh-my-zsh.sh sets ZSH_COMPDUMP to a version-suffixed path and rebuilds
+# the *current-version* dump when OMZ revision or fpath change, but it does not
+# clean up dumps from earlier zsh versions -- they accumulate one per upgrade
+# (.zcompdump-host-5.9, .zcompdump-host-5.10, ...). Not handled by upstream OMZ
+# template or oh-my-zsh.sh; this block compensates.
+#
+# Must run BEFORE `source $ZSH/oh-my-zsh.sh`, because OMZ's compinit creates
+# the current-version dump as a side effect of sourcing. We use the absence of
+# the current-version dump as the "zsh just upgraded" signal, then nuke the rest.
 _zcompdump_current="${ZDOTDIR:-$HOME}/.zcompdump-${HOST%%.*}-${ZSH_VERSION}"
 if [[ ! -f $_zcompdump_current ]]; then
   setopt local_options extended_glob null_glob
