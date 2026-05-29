@@ -121,3 +121,7 @@ alias cz='chezmoi'
 
 # Friendly alias for the cert script (bin/cert)
 alias check-cert=cert
+
+alias py=python
+alias python=python3
+alias pip=pip3
