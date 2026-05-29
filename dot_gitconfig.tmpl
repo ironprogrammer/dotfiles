@@ -92,6 +92,13 @@
 	gpgsign = true
 [core]
 	excludesfile = ~/.gitignore_global
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+	side-by-side = true
+	line-numbers = true
 [credential]
 	helper = 
 	helper = /usr/local/share/gcm-core/git-credential-manager
@@ -113,6 +120,7 @@
 	#program = /opt/homebrew/bin/gpg
 [merge]
 	tool = sublime
+	conflictstyle = zdiff3
 [mergetool "sublime"]
 	cmd = smerge mergetool \"\" --base \"\" --theirs \"\" --mine \"\"
 [mergetool]

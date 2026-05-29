@@ -1,0 +1,7 @@
+[data]
+	signingkey = "EE145A2C0FD045C8"
+[merge]
+    command = "meld"
+    args = [{{`"{{ .Destination }}", "{{ .Source }}", "{{ .Target }}"`}}]
+[diff]
+    pager = "delta --side-by-side --line-numbers --navigate"
