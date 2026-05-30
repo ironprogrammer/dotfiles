@@ -1,14 +1,22 @@
 #!/usr/bin/env zsh
 # List custom bin scripts and sourced functions with descriptions
 # Usage: t [filter]   — filter matches name OR description (case-insensitive)
+#        t -l         — long format (single column, full descriptions)
 #        t -h         — this help
 
+long=false
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    sed -n '2,4p' "$0" | sed 's/^# \?//'
+    sed -n '2,5p' "$0" | sed 's/^# \?//'
     exit 0
+elif [[ "$1" == "-l" || "$1" == "--long" ]]; then
+    long=true; shift
 fi
 
 filter="${1:-}"
+# Filter mode implies long format (you're zooming in for detail)
+[[ -n "$filter" ]] && long=true
+# Non-tty (piped) also implies long for clean parseable output
+[[ ! -t 1 ]] && long=true
 custom_dir="$HOME/.oh-my-zsh/custom"
 bin_dir="$custom_dir/bin"
 self="$(basename "$0")"
@@ -40,7 +48,17 @@ matches() {
     [[ "$lc_name" == *"$lc_filter"* ]] || [[ "$lc_desc" == *"$lc_filter"* ]]
 }
 
-print_section() {
+# Truncate string to N chars, appending … if cut
+truncate_to() {
+    local s="$1" n="$2"
+    if (( ${#s} > n )); then
+        printf "%s…" "${s:0:$((n - 1))}"
+    else
+        printf "%s" "$s"
+    fi
+}
+
+print_long() {
     local title="$1"; shift
     [[ $# -eq 0 ]] && return
     printf "${bold}%s${reset}\n" "$title"
@@ -51,6 +69,62 @@ print_section() {
         printf "  %-22s ${dim}%s${reset}\n" "$name" "$desc"
     done
     echo
+}
+
+# Two-column compact layout for terminal scanning.
+# Column order is column-major: alphabetical down the left column, then right.
+print_compact() {
+    local title="$1"; shift
+    [[ $# -eq 0 ]] && return
+    printf "${bold}%s${reset}\n" "$title"
+
+    local n=$#
+    local cols=2
+    local rows=$(( (n + cols - 1) / cols ))
+    local term_width=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}
+    local sep=" │ "
+    local sep_len=3
+    local lead_len=2
+    # Each column: name(name_w) + 1 gap + desc(desc_w)
+    local col_inner=$(( (term_width - lead_len - sep_len * (cols - 1)) / cols ))
+    local name_w=14
+    local desc_w=$(( col_inner - name_w - 1 ))
+    (( desc_w < 8 )) && desc_w=8
+
+    local -a entries=("$@")
+    local r c idx entry name desc padded_name padded_desc line
+
+    for (( r = 1; r <= rows; r++ )); do
+        line="  "
+        for (( c = 0; c < cols; c++ )); do
+            idx=$(( c * rows + r ))
+            if (( idx <= n )); then
+                entry="${entries[$idx]}"
+                name="${entry%%$'\t'*}"
+                desc="${entry#*$'\t'}"
+                name=$(truncate_to "$name" "$name_w")
+                desc=$(truncate_to "$desc" "$desc_w")
+            else
+                name=""; desc=""
+            fi
+            padded_name="${(r:name_w:: :)name}"
+            padded_desc="${(r:desc_w:: :)desc}"
+            line+="${padded_name} ${dim}${padded_desc}${reset}"
+            if (( c < cols - 1 )); then
+                line+="$sep"
+            fi
+        done
+        printf "%s\n" "$line"
+    done
+    echo
+}
+
+print_section() {
+    if $long; then
+        print_long "$@"
+    else
+        print_compact "$@"
+    fi
 }
 
 # Collect bin scripts (skip self)

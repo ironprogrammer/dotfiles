@@ -1,13 +1,5 @@
 #!/usr/bin/env bash
-#
-# chez
-# -----------------------------------------------------------------------------
-# Read-only status helper for chezmoi. Inspects the source repo, destination,
-# and upstream, then prints pending work in both directions with the specific
-# chezmoi commands to resolve each. Never mutates state.
-#
-# Usage: chez
-# -----------------------------------------------------------------------------
+# Read-only chezmoi status helper: shows pending work both directions with resolve commands
 
 set -uo pipefail
 
