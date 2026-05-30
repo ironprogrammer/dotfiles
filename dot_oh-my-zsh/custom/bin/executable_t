@@ -183,6 +183,11 @@ done < <(
 )
 func_lines=("${(@on)func_lines}")
 
+# Hint line (only in tty, suppressed when piped or filtering)
+if [[ -t 1 && -z "$filter" ]]; then
+    printf "${dim}t <name> filter   t -l long format   t -h help${reset}\n\n"
+fi
+
 print_section "BIN SCRIPTS" "${bin_lines[@]}"
 print_section "SOURCED FUNCTIONS" "${func_lines[@]}"
 
