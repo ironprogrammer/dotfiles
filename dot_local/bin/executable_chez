@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+#
+# chez
+# -----------------------------------------------------------------------------
+# Read-only status helper for chezmoi. Inspects the source repo, destination,
+# and upstream, then prints pending work in both directions with the specific
+# chezmoi commands to resolve each. Never mutates state.
+#
+# Usage: chez
+# -----------------------------------------------------------------------------
+
+set -uo pipefail
+
+command -v chezmoi >/dev/null 2>&1 || { echo "chez: chezmoi not installed" >&2; exit 1; }
+
+if [[ -t 1 ]]; then
+  R=$'\033[0m'; B=$'\033[1m'; D=$'\033[2m'
+  G=$'\033[32m'; Y=$'\033[33m'; RED=$'\033[31m'; C=$'\033[36m'
+else
+  R= B= D= G= Y= RED= C=
+fi
+
+SRC=$(chezmoi source-path)
+cd "$SRC" || { echo "chez: cannot cd to $SRC" >&2; exit 1; }
+
+# Refresh remote refs so upstream-incoming detection is accurate. Tolerate offline.
+git fetch --quiet 2>/dev/null || true
+
+UNCOMMITTED=$(git status --porcelain)
+HAS_UP=true
+git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1 || HAS_UP=false
+UNPUSHED=""; UNPULLED=""; UP_FILES=""
+if $HAS_UP; then
+  UNPUSHED=$(git log --oneline '@{u}..HEAD' 2>/dev/null)
+  UNPULLED=$(git log --oneline 'HEAD..@{u}' 2>/dev/null)
+  UP_FILES=$(git diff --name-only 'HEAD..@{u}' 2>/dev/null)
+fi
+STATUS=$(chezmoi status 2>/dev/null)
+
+# Parse `chezmoi status` lines: col 1 = source state, col 2 = destination state.
+# A non-space in col 1 means source has a pending change for ~ (apply would push).
+# A non-space in col 2 means ~ has drifted from source (re-add would capture).
+SRC_PEND=""; DST_DRIFT=""
+while IFS= read -r ln; do
+  [[ -z "$ln" ]] && continue
+  [[ "${ln:0:1}" != " " ]] && SRC_PEND+="$ln"$'\n'
+  [[ "${ln:1:1}" != " " ]] && DST_DRIFT+="$ln"$'\n'
+done <<< "$STATUS"
+
+# Map drifted destination paths back to source-relative paths so we can
+# intersect with the upstream change list and surface true conflicts.
+DRIFT_SRC=""
+while IFS= read -r ln; do
+  [[ -z "$ln" ]] && continue
+  rel="${ln:3}"
+  sp=$(chezmoi source-path "$HOME/$rel" 2>/dev/null) || continue
+  DRIFT_SRC+="${sp#$SRC/}"$'\n'
+done <<< "$DST_DRIFT"
+
+CONFLICTS=""
+if [[ -n "$UP_FILES" && -n "$DRIFT_SRC" ]]; then
+  CONFLICTS=$(comm -12 \
+    <(printf '%s' "$UP_FILES"  | sort -u) \
+    <(printf '%s' "$DRIFT_SRC" | sort -u))
+fi
+
+if [[ -z "$UNCOMMITTED$UNPUSHED$UNPULLED$STATUS" ]]; then
+  echo "${G}✓${R} chezmoi in sync — nothing pending."
+  exit 0
+fi
+
+echo "${B}${C}chez${R} ${D}— $SRC${R}"
+
+push_h=false
+ph() { $push_h && return; echo; echo "${B}↑ Push (local → upstream)${R}"; push_h=true; }
+
+if [[ -n "$DST_DRIFT" ]]; then
+  ph
+  echo "  ${Y}●${R} ~ has edits not in source:"
+  while IFS= read -r ln; do
+    [[ -z "$ln" ]] && continue
+    echo "      ~/${ln:3}"
+  done <<< "$DST_DRIFT"
+  echo "  ${D}suggested:${R}"
+  while IFS= read -r ln; do
+    [[ -z "$ln" ]] && continue
+    rel="${ln:3}"
+    echo "    chezmoi diff   ~/$rel    ${D}# review${R}"
+    echo "    chezmoi re-add ~/$rel    ${D}# capture into source${R}"
+  done <<< "$DST_DRIFT"
+fi
+
+if [[ -n "$UNCOMMITTED" ]]; then
+  ph
+  echo "  ${Y}●${R} uncommitted source changes:"
+  echo "$UNCOMMITTED" | sed 's/^/      /'
+  echo "  ${D}suggested:${R}"
+  echo "    chezmoi git diff"
+  echo "    chezmoi git add -- <paths>"
+  echo "    chezmoi git commit -m \"…\""
+fi
+
+if [[ -n "$UNPUSHED" ]]; then
+  ph
+  echo "  ${Y}●${R} unpushed commits:"
+  echo "$UNPUSHED" | sed 's/^/      /'
+  echo "  ${D}suggested:${R} chezmoi git push"
+fi
+
+if [[ -n "$UNPULLED" ]]; then
+  echo
+  echo "${B}↓ Pull (upstream → local)${R}"
+  echo "  ${Y}●${R} incoming commits:"
+  echo "$UNPULLED" | sed 's/^/      /'
+  if [[ -n "$UP_FILES" ]]; then
+    echo "  ${D}files affected:${R}"
+    echo "$UP_FILES" | sed 's/^/      /'
+  fi
+  if [[ -n "$CONFLICTS" ]]; then
+    echo
+    echo "  ${RED}⚠ CONFLICTS${R} (changed upstream AND in ~):"
+    while IFS= read -r f; do
+      [[ -z "$f" ]] && continue
+      echo "      $f"
+    done <<< "$CONFLICTS"
+    echo "  ${D}for each conflict, after pulling:${R} chezmoi merge <target-path>"
+  fi
+  echo "  ${D}suggested:${R}"
+  echo "    chezmoi git pull --rebase       ${D}# fetch + merge in source${R}"
+  echo "    chezmoi apply --interactive     ${D}# walk file-by-file${R}"
+fi
+
+if [[ -n "$SRC_PEND" ]]; then
+  echo
+  echo "${B}↻ Source ahead of ~${R} ${D}(apply pushes source → ~)${R}"
+  while IFS= read -r ln; do
+    [[ -z "$ln" ]] && continue
+    echo "      ~/${ln:3}"
+  done <<< "$SRC_PEND"
+  echo "  ${D}suggested:${R} chezmoi apply --interactive"
+fi
+
+echo
