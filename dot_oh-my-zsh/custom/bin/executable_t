@@ -176,7 +176,7 @@ done < <(
                 if (name !~ /^_/) print name "\t" desc
                 desc = ""; next
             }
-            /^[[:space:]]*$/ { next }
+            /^[[:space:]]*$/ { desc = ""; next }
             { desc = "" }
         ' "$f"
     done

@@ -25,8 +25,9 @@ alias admin='wp admin'
 # Check git status including nested repos under current root
 alias gitsts='find ./ -name .git -exec dirname {} \; | xargs -L 1 bash -c '\''echo -e "\033[1;34m==> $0\033[0m" && cd "$0" && git status'\'''
 
-# Open PR for current branch (https://jeff.blog/2024/02/dude-wheres-my-pr/)
+# Open PR for current branch
 # Putting --web at end can cause incorrect PR to be opened in browser; moved before owner:branch
+# See https://jeff.blog/2024/02/dude-wheres-my-pr/
 ghpr() {
   if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     local user
@@ -80,6 +81,7 @@ wp-update() {
 	fi
 }
 
+# Hard reset current branch to upstream and pull (discards local commits)
 wp-syncit() {
 	local branch=`git rev-parse --abbrev-ref --symbolic-full-name @{u}`
 	git reset --hard ${branch} && git pull
@@ -316,8 +318,9 @@ wp-kill() {
 		&& echo Site killed.
 }
 
-# Backup, restore, or reset SQLite database file
 alias db=wp-db
+
+# Backup, restore, or reset SQLite database file
 wp-db() {
 	if [ -z "$1" ]; then
 		echo Usage: db backup\|restore\|reset

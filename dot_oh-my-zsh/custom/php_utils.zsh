@@ -21,6 +21,7 @@ cleanvendor() {
 	fi
 }
 
+# Run project-local phpcs if vendor/bin has it, else fall back to global Composer install
 phpcs() {
 	if [ -f "vendor/bin/phpcs" ]; then
 		# call phpcs and pass in all args
@@ -30,7 +31,8 @@ phpcs() {
 	fi
 }
 
-# Set Xdebug variables for CLI debugging, e.g. for phpunit: https://getgrav.org/blog/macos-monterey-apache-mysql-vhost-apc
+# Set Xdebug variables for CLI debugging, e.g. for phpunit
+# See https://getgrav.org/blog/macos-monterey-apache-mysql-vhost-apc
 xdebug-cli() {
 	export XDEBUG_MODE=debug
 	export PHP_IDE_CONFIG=serverName=localhost

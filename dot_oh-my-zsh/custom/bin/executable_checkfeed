@@ -1,6 +1,5 @@
 #!/usr/bin/env zsh
-# Description: Fetches a given domain and scans the HTML head for
-# standard RSS/Atom/JSON feed auto-discovery links.
+# Scan a domain's HTML head for RSS/Atom/JSON feed auto-discovery links
 # Usage: checkfeed <domain> (e.g., checkfeed example.com)
 
 if [[ -z "$1" ]]; then

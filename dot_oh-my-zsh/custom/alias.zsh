@@ -9,24 +9,29 @@ alias hoy='echo -n "$(date '+%Y-%m-%d')"'
 
 # Use bat instead of cat: https://github.com/sharkdp/bat
 alias cat=bat
-# Use `help <command>` for even more betterer
+# Use bat for syntax-highlighted help output
 alias bathelp='bat --plain --language=help'
+
+# Pipe a command's --help output through bat (syntax-highlighted)
 help() {
     "$@" --help 2>&1 | bathelp
 }
-# Use bat for ALL help results -- incompat with cert function's -h|--help parsing @todo
+
+# Tried generalizing this via -h/--help global aliases, but those break cert's flag parsing @todo
 #alias -g -- -h='-h 2>&1 | bathelp'
 #alias -g -- --help='--help 2>&1 | bathelp'
-# Pass tail results to bat
+
+# Pipe tail output through bat for syntax-highlighted logs
 tail() {
     command tail "$@" | bat --paging=never -l log
 }
 # Backup for cat if ever needed
 alias ccat=cat
 
-# Pipe llm responses through bat (https://fluffyandflakey.blog/2025/06/04/llm-syntax-highlighting/)
+# Pipe llm responses through bat for markdown-highlighted output
 # Designed to be used like `q(uestion) 'enter your prompt here'`
-# Also see https://llm.datasette.io/en/stable/usage.html
+# See https://fluffyandflakey.blog/2025/06/04/llm-syntax-highlighting/
+# See https://llm.datasette.io/en/stable/usage.html
 q() {
     llm "$@" | bat -l md -P --plain
 }

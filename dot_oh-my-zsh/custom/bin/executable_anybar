@@ -1,5 +1,6 @@
 #!/usr/bin/env zsh
-# Shortcut for AnyBar https://github.com/tonsky/AnyBar
+# Set AnyBar's menubar dot color; launches AnyBar if not running
+# See https://github.com/tonsky/AnyBar
 local port=1738
 if ! lsof -iUDP:$port > /dev/null 2>&1; then
     open -a AnyBar \

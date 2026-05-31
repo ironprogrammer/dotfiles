@@ -9,8 +9,9 @@ _site() {
 }
 compdef _site site
 
-# Create a new directory and enter it
 alias md='mkd'
+
+# Create a new directory and enter it
 function mkd() {
 	mkdir -p "$@" && cd "$_";
 }
