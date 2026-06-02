@@ -39,6 +39,9 @@ q() {
 alias cc='claude --dangerously-skip-permissions'
 alias claudeup='brew upgrade --cask claude claude-code'
 
+alias claude-work='CLAUDE_CONFIG_DIR=~/.claude-work claude'
+alias ccw='claude-work --dangerously-skip-permissions'
+
 # Workaround for: zsh: correct 'test' to 'tests' [nyae]?
 # Just has zsh skip autocorrection for npm command
 alias npm='nocorrect npm'
