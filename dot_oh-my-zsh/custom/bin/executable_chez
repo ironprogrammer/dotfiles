@@ -29,14 +29,14 @@ if $HAS_UP; then
 fi
 STATUS=$(chezmoi status 2>/dev/null)
 
-# Parse `chezmoi status` lines: col 1 = source state, col 2 = destination state.
-# A non-space in col 1 means source has a pending change for ~ (apply would push).
-# A non-space in col 2 means ~ has drifted from source (re-add would capture).
+# Parse `chezmoi status` lines (see `chezmoi help status`):
+#   col 1 = last-written-by-chezmoi vs actual → ~ drifted (re-add would capture).
+#   col 2 = actual vs target           → source ahead of ~ (apply would update ~).
 SRC_PEND=""; DST_DRIFT=""
 while IFS= read -r ln; do
   [[ -z "$ln" ]] && continue
-  [[ "${ln:0:1}" != " " ]] && SRC_PEND+="$ln"$'\n'
-  [[ "${ln:1:1}" != " " ]] && DST_DRIFT+="$ln"$'\n'
+  [[ "${ln:0:1}" != " " ]] && DST_DRIFT+="$ln"$'\n'
+  [[ "${ln:1:1}" != " " ]] && SRC_PEND+="$ln"$'\n'
 done <<< "$STATUS"
 
 # Map drifted destination paths back to source-relative paths so we can
