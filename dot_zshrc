@@ -103,6 +103,9 @@ unset _zcompdump_current
 
 source $ZSH/oh-my-zsh.sh
 
+# Spaceship: use Nerd Font battery glyph for low-battery indicator
+SPACESHIP_BATTERY_SYMBOL_DISCHARGING=$' '  #  nf-fa-battery_empty
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
