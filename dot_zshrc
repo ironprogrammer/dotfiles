@@ -91,12 +91,23 @@ plugins+=(zsh-nvm composer)
 # Must run BEFORE `source $ZSH/oh-my-zsh.sh`, because OMZ's compinit creates
 # the current-version dump as a side effect of sourcing. We use the absence of
 # the current-version dump as the "zsh just upgraded" signal, then nuke the rest.
-_zcompdump_current="${ZDOTDIR:-$HOME}/.zcompdump-${HOST%%.*}-${ZSH_VERSION}"
-if [[ ! -f $_zcompdump_current ]]; then
+#
+# MUST be wrapped in a function. `local_options` only restores options when a
+# FUNCTION returns; at top level it has nothing to restore to, so `local_options`
+# itself (plus extended_glob/null_glob) leaks into the `source oh-my-zsh.sh`
+# below. With local_options live while OMZ loads the theme, spaceship's
+# `setopt prompt_subst` gets rolled back -> the prompt renders literally as
+# `$(spaceship::prompt)`. This bites specifically on `omz reload`, which does
+# `rm -f $ZSH_COMPDUMP` before exec, so the dump is always missing at reload.
+_prune_stale_zcompdump() {
+  emulate -L zsh
   setopt local_options extended_glob null_glob
-  rm -f ${ZDOTDIR:-$HOME}/.zcompdump*~$_zcompdump_current*
-fi
-unset _zcompdump_current
+  local current="${ZDOTDIR:-$HOME}/.zcompdump-${HOST%%.*}-${ZSH_VERSION}"
+  [[ -f $current ]] && return
+  rm -f ${ZDOTDIR:-$HOME}/.zcompdump*~$current*
+}
+_prune_stale_zcompdump
+unfunction _prune_stale_zcompdump
 
 source $ZSH/oh-my-zsh.sh
 
