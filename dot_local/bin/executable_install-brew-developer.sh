@@ -96,7 +96,7 @@ casks=(
   cmux
 
   # --- AI coding assistants ---
-  claude-code
+  #claude-code # --- prefer native installer for edge release and autoupdates: https://claude.com/product/claude-code
   codex
   codex-app
 
