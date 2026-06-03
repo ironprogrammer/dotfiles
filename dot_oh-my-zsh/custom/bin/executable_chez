@@ -112,7 +112,7 @@ if [[ -n "$REA" ]]; then
     echo "    chezmoi diff   ~/$rel    ${D}# review${R}"
     echo "    chezmoi re-add ~/$rel    ${D}# capture into source${R}"
   done <<< "$REA"
-  echo "  ${D}then:${R} chezmoi git add -- <paths> && chezmoi git commit -m \"…\" && chezmoi git push"
+  echo "  ${D}then:${R} chezmoi git -- add <paths> && chezmoi git -- commit -m \"…\" && chezmoi git -- push"
 fi
 
 if [[ -n "$UNCOMMITTED" ]]; then
@@ -120,15 +120,15 @@ if [[ -n "$UNCOMMITTED" ]]; then
   echo "  ${Y}●${R} uncommitted source changes:"
   echo "$UNCOMMITTED" | sed 's/^/      /'
   echo "  ${D}suggested:${R}"
-  echo "    chezmoi git diff"
-  echo "    chezmoi git add -- <paths> && chezmoi git commit -m \"…\""
+  echo "    chezmoi git -- diff"
+  echo "    chezmoi git -- add <paths> && chezmoi git -- commit -m \"…\""
 fi
 
 if [[ -n "$UNPUSHED" ]]; then
   echo
   echo "  ${Y}●${R} unpushed commits:"
   echo "$UNPUSHED" | sed 's/^/      /'
-  echo "  ${D}suggested:${R} chezmoi git push"
+  echo "  ${D}suggested:${R} chezmoi git -- push"
 fi
 
 # ── Pull: upstream commits not yet local ──
@@ -149,7 +149,7 @@ if [[ -n "$UNPULLED" ]]; then
     # Local ~ edits (or a true conflict) exist — a blind apply would overwrite them,
     # so split pull from apply and walk the apply by hand.
     echo "  ${D}~ has local edits — pull and apply separately so they aren't clobbered:${R}"
-    echo "    chezmoi git pull --rebase       ${D}# fetch + merge in source${R}"
+    echo "    chezmoi git -- pull --rebase    ${D}# fetch + merge in source${R}"
     echo "    chezmoi apply --interactive     ${D}# walk file-by-file${R}"
     [[ -n "$CONF" ]] && echo "  ${RED}note:${R} files in the CONFLICT block above also changed in ~ — resolve those by hand."
   fi
@@ -171,7 +171,7 @@ if [[ -n "$APPLY" || -n "$OOB" ]]; then
       echo "    chezmoi diff ~/$rel                      ${D}# see the source → ~ change${R}"
     done <<< "$OOB"
     echo "  ${D}keep it:${R} chezmoi apply <path> ${D}then commit${R}"
-    echo "  ${D}discard:${R} chezmoi git checkout -- <source-path>   ${D}# revert source to last commit${R}"
+    echo "  ${D}discard:${R} chezmoi git -- checkout -- <source-path>   ${D}# revert source to last commit${R}"
   fi
 fi
 
