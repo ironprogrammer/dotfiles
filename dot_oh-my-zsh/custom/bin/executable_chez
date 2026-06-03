@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
-# Read-only chezmoi status helper: shows pending work both directions with resolve commands
+# Read-only chezmoi status helper: shows pending work both directions with resolve commands.
+#
+# Key idea: `chezmoi status` columns are NOT two independent jobs.
+#   col 1 = last-written-by-chezmoi vs actual ~   → "~ was edited since apply"
+#   col 2 = actual ~ vs target (source)           → "apply would change ~"
+# When you edit ONLY ~, both columns read M describing the SAME diff (source
+# untouched, so last-written == target). Blindly suggesting `apply` off col 2
+# would then destroy your ~ edits. We disambiguate `MM` files by cross-checking
+# the source repo's git state (uncommitted + incoming-upstream):
+#   MM, source clean & no incoming  → only ~ changed   → re-add (apply suppressed)
+#   MM, source dirty or incoming    → true 3-way split → CONFLICT (apply/re-add both destructive)
+#    M, source dirty                → out-of-band edit → review: keep or discard
+#    M, source clean                → deliberate source-ahead → apply is safe
 
 set -uo pipefail
 
@@ -29,32 +41,42 @@ if $HAS_UP; then
 fi
 STATUS=$(chezmoi status 2>/dev/null)
 
-# Parse `chezmoi status` lines (see `chezmoi help status`):
-#   col 1 = last-written-by-chezmoi vs actual → ~ drifted (re-add would capture).
-#   col 2 = actual vs target           → source ahead of ~ (apply would update ~).
-SRC_PEND=""; DST_DRIFT=""
+# Source-relative paths with uncommitted edits in the dotfiles repo (strip "XY " prefix).
+DIRTY_SRC=$(printf '%s\n' "$UNCOMMITTED" | sed 's/^...//')
+
+in_set() {  # in_set <needle> <newline-list>
+  local needle=$1 list=$2 line
+  while IFS= read -r line; do [[ "$line" == "$needle" ]] && return 0; done <<< "$list"
+  return 1
+}
+
+# Classify each status entry into one bucket using the source-side git signal.
+REA=""    # ~ edited, safe to capture (re-add); apply would be destructive
+CONF=""   # ~ edited AND source/upstream also changed → true 3-way conflict
+APPLY=""  # source ahead of ~, committed/deliberate → apply is safe
+OOB=""    # source ahead of ~ via uncommitted out-of-band edit (maybe accidental)
+
 while IFS= read -r ln; do
   [[ -z "$ln" ]] && continue
-  [[ "${ln:0:1}" != " " ]] && DST_DRIFT+="$ln"$'\n'
-  [[ "${ln:1:1}" != " " ]] && SRC_PEND+="$ln"$'\n'
+  c1=${ln:0:1}; c2=${ln:1:1}; rel=${ln:3}
+  sp=""
+  if sp=$(chezmoi source-path "$HOME/$rel" 2>/dev/null); then sp=${sp#$SRC/}; fi
+  srcDirty=false; upIn=false
+  [[ -n "$sp" ]] && in_set "$sp" "$DIRTY_SRC" && srcDirty=true
+  [[ -n "$sp" ]] && in_set "$sp" "$UP_FILES"  && upIn=true
+
+  if [[ "$c1" != " " && "$c2" != " " ]]; then
+    # ~ drifted AND differs from target. The MM ambiguity: real conflict only if
+    # the source genuinely moved (dirty or incoming). Otherwise it's just the ~ edit.
+    if $srcDirty || $upIn; then CONF+="$rel"$'\n'; else REA+="$rel"$'\n'; fi
+  elif [[ "$c1" != " " && "$c2" == " " ]]; then
+    # ~ drifted but already matches target → source already captures it (re-add refreshes state).
+    REA+="$rel"$'\n'
+  elif [[ "$c1" == " " && "$c2" != " " ]]; then
+    # ~ untouched; source/target ahead.
+    if $srcDirty; then OOB+="$rel"$'\n'; else APPLY+="$rel"$'\n'; fi
+  fi
 done <<< "$STATUS"
-
-# Map drifted destination paths back to source-relative paths so we can
-# intersect with the upstream change list and surface true conflicts.
-DRIFT_SRC=""
-while IFS= read -r ln; do
-  [[ -z "$ln" ]] && continue
-  rel="${ln:3}"
-  sp=$(chezmoi source-path "$HOME/$rel" 2>/dev/null) || continue
-  DRIFT_SRC+="${sp#$SRC/}"$'\n'
-done <<< "$DST_DRIFT"
-
-CONFLICTS=""
-if [[ -n "$UP_FILES" && -n "$DRIFT_SRC" ]]; then
-  CONFLICTS=$(comm -12 \
-    <(printf '%s' "$UP_FILES"  | sort -u) \
-    <(printf '%s' "$DRIFT_SRC" | sort -u))
-fi
 
 if [[ -z "$UNCOMMITTED$UNPUSHED$UNPULLED$STATUS" ]]; then
   echo "${G}✓${R} chezmoi in sync — nothing pending."
@@ -63,42 +85,53 @@ fi
 
 echo "${B}${C}chez${R} ${D}— $SRC${R}"
 
-push_h=false
-ph() { $push_h && return; echo; echo "${B}↑ Push (local → upstream)${R}"; push_h=true; }
+emit_paths() { while IFS= read -r p; do [[ -z "$p" ]] && continue; echo "      ~/$p"; done <<< "$1"; }
 
-if [[ -n "$DST_DRIFT" ]]; then
-  ph
-  echo "  ${Y}●${R} ~ has edits not in source:"
-  while IFS= read -r ln; do
-    [[ -z "$ln" ]] && continue
-    echo "      ~/${ln:3}"
-  done <<< "$DST_DRIFT"
+# ── True conflicts first: mutually destructive resolutions, highest stakes ──
+if [[ -n "$CONF" ]]; then
+  echo
+  echo "${RED}⚠ CONFLICT (3-way)${R} — ~ edited AND source/upstream also changed:"
+  emit_paths "$CONF"
+  echo "  ${D}review both sides, then pick ONE per file:${R}"
+  while IFS= read -r rel; do [[ -z "$rel" ]] && continue
+    echo "    chezmoi diff  ~/$rel        ${D}# source → ~${R}"
+    echo "    chezmoi merge ~/$rel        ${D}# reconcile in a 3-way merge${R}"
+  done <<< "$CONF"
+  echo "  ${D}keep ~:${R}      chezmoi re-add <path>   ${D}# overwrites source with ~${R}"
+  echo "  ${D}keep source:${R} chezmoi apply  <path>   ${RED}# discards ~ edits${R}"
+fi
+
+# ── Push: ~ edits to capture upstream (apply deliberately NOT suggested here) ──
+if [[ -n "$REA" ]]; then
+  echo
+  echo "${B}↑ Push (local → upstream)${R}"
+  echo "  ${Y}●${R} ~ has edits newer than source — capture them:"
+  emit_paths "$REA"
   echo "  ${D}suggested:${R}"
-  while IFS= read -r ln; do
-    [[ -z "$ln" ]] && continue
-    rel="${ln:3}"
+  while IFS= read -r rel; do [[ -z "$rel" ]] && continue
     echo "    chezmoi diff   ~/$rel    ${D}# review${R}"
     echo "    chezmoi re-add ~/$rel    ${D}# capture into source${R}"
-  done <<< "$DST_DRIFT"
+  done <<< "$REA"
+  echo "  ${D}then:${R} chezmoi git add -- <paths> && chezmoi git commit -m \"…\" && chezmoi git push"
 fi
 
 if [[ -n "$UNCOMMITTED" ]]; then
-  ph
+  echo
   echo "  ${Y}●${R} uncommitted source changes:"
   echo "$UNCOMMITTED" | sed 's/^/      /'
   echo "  ${D}suggested:${R}"
   echo "    chezmoi git diff"
-  echo "    chezmoi git add -- <paths>"
-  echo "    chezmoi git commit -m \"…\""
+  echo "    chezmoi git add -- <paths> && chezmoi git commit -m \"…\""
 fi
 
 if [[ -n "$UNPUSHED" ]]; then
-  ph
+  echo
   echo "  ${Y}●${R} unpushed commits:"
   echo "$UNPUSHED" | sed 's/^/      /'
   echo "  ${D}suggested:${R} chezmoi git push"
 fi
 
+# ── Pull: upstream commits not yet local ──
 if [[ -n "$UNPULLED" ]]; then
   echo
   echo "${B}↓ Pull (upstream → local)${R}"
@@ -108,28 +141,30 @@ if [[ -n "$UNPULLED" ]]; then
     echo "  ${D}files affected:${R}"
     echo "$UP_FILES" | sed 's/^/      /'
   fi
-  if [[ -n "$CONFLICTS" ]]; then
-    echo
-    echo "  ${RED}⚠ CONFLICTS${R} (changed upstream AND in ~):"
-    while IFS= read -r f; do
-      [[ -z "$f" ]] && continue
-      echo "      $f"
-    done <<< "$CONFLICTS"
-    echo "  ${D}for each conflict, after pulling:${R} chezmoi merge <target-path>"
-  fi
   echo "  ${D}suggested:${R}"
   echo "    chezmoi git pull --rebase       ${D}# fetch + merge in source${R}"
   echo "    chezmoi apply --interactive     ${D}# walk file-by-file${R}"
+  [[ -n "$CONF" ]] && echo "  ${RED}note:${R} files in the CONFLICT block above also changed in ~ — resolve those by hand."
 fi
 
-if [[ -n "$SRC_PEND" ]]; then
+# ── Source ahead of ~ : deliberate (apply) vs out-of-band (review) ──
+if [[ -n "$APPLY" || -n "$OOB" ]]; then
   echo
   echo "${B}↻ Source ahead of ~${R} ${D}(apply pushes source → ~)${R}"
-  while IFS= read -r ln; do
-    [[ -z "$ln" ]] && continue
-    echo "      ~/${ln:3}"
-  done <<< "$SRC_PEND"
-  echo "  ${D}suggested:${R} chezmoi apply --interactive"
+  if [[ -n "$APPLY" ]]; then
+    emit_paths "$APPLY"
+    echo "  ${D}suggested:${R} chezmoi apply --interactive"
+  fi
+  if [[ -n "$OOB" ]]; then
+    echo "  ${Y}⚠ out-of-band source edit (uncommitted — may be accidental):${R}"
+    emit_paths "$OOB"
+    echo "  ${D}~ is untouched; decide which side is canonical:${R}"
+    while IFS= read -r rel; do [[ -z "$rel" ]] && continue
+      echo "    chezmoi diff ~/$rel                      ${D}# see the source → ~ change${R}"
+    done <<< "$OOB"
+    echo "  ${D}keep it:${R} chezmoi apply <path> ${D}then commit${R}"
+    echo "  ${D}discard:${R} chezmoi git checkout -- <source-path>   ${D}# revert source to last commit${R}"
+  fi
 fi
 
 echo
