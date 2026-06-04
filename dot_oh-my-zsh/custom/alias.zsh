@@ -42,6 +42,11 @@ alias claude-work='CLAUDE_CONFIG_DIR=~/.claude-work claude'
 alias ccw='claude-work --dangerously-skip-permissions'
 alias claudeup='claude update && brew upgrade --cask claude' # claude-code now native
 
+# Codex things
+alias oc='codex -a never -s workspace-write'
+alias ocy='codex --yolo'
+alias codexup='brew upgrade --cask codex chatgpt'
+
 # Workaround for: zsh: correct 'test' to 'tests' [nyae]?
 # Just has zsh skip autocorrection for npm command
 alias npm='nocorrect npm'
