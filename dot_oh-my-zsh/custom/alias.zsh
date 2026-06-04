@@ -36,11 +36,11 @@ q() {
     llm "$@" | bat -l md -P --plain
 }
 
+# Claude things
 alias cc='claude --dangerously-skip-permissions'
-alias claudeup='brew upgrade --cask claude claude-code'
-
 alias claude-work='CLAUDE_CONFIG_DIR=~/.claude-work claude'
 alias ccw='claude-work --dangerously-skip-permissions'
+alias claudeup='claude update && brew upgrade --cask claude' # claude-code now native
 
 # Workaround for: zsh: correct 'test' to 'tests' [nyae]?
 # Just has zsh skip autocorrection for npm command
