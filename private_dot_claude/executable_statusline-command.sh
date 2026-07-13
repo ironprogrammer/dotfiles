@@ -14,6 +14,11 @@ fmt_num() {
   }'
 }
 
+# Color for a usage percentage: green < 50, yellow 50-80, red >= 80
+pct_color() {
+  awk -v p="$1" 'BEGIN{ if (p>=80) print "\033[31m"; else if (p>=50) print "\033[33m"; else print "\033[32m" }'
+}
+
 # --- Account detection (shared script, behaves per-account) ---
 # Find the active account file. When launched with CLAUDE_CONFIG_DIR (e.g. the
 # work `ccw` alias) it lives inside that dir; the personal default lives at
@@ -45,6 +50,8 @@ dir=$(basename "$cwd")
 model=$(echo "$input" | jq -r '.model.display_name // empty')
 cost=$(echo "$input" | jq -r '.cost.total_cost_usd // empty')
 used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
+five_h=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
+week=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
 input_tokens=$(echo "$input" | jq -r '.context_window.current_usage.input_tokens // empty')
 window_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty')
 
@@ -88,5 +95,18 @@ if [ -n "$cost" ]; then
   cost_color=$(awk -v c="$cost" 'BEGIN{ if (c>=5) print "\033[31m"; else if (c>=1) print "\033[33m"; else print "\033[32m" }')
 fi
 
-printf "${acct_str}\033[33m%s\033[0m\033[32m%s\033[0m\033[35m%s\033[0m${cost_color}%s\033[0m\033[90m%s\033[0m" \
+# Build rate-limit string (5h session + 7d weekly usage %).
+# Fields only present for subscription accounts after the first API response;
+# each may be independently absent.
+limit_str=""
+if [ -n "$five_h" ]; then
+  c=$(pct_color "$five_h")
+  limit_str="${limit_str} ${c}5h:$(printf '%.0f' "$five_h")%%\033[0m"
+fi
+if [ -n "$week" ]; then
+  c=$(pct_color "$week")
+  limit_str="${limit_str} ${c}wk:$(printf '%.0f' "$week")%%\033[0m"
+fi
+
+printf "${acct_str}\033[33m%s\033[0m\033[32m%s\033[0m\033[35m%s\033[0m${cost_color}%s\033[0m\033[90m%s\033[0m${limit_str}" \
   "$dir" "$git_str" "$model_str" "$cost_str" "$ctx_str"
