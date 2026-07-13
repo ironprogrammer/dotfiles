@@ -86,13 +86,25 @@ if [ -n "$model" ]; then
   model_str=" [${model}]"
 fi
 
-# Build session cost string (API-equivalent cost of this session)
-# Color escalates: green < $1, yellow $1-5, red >= $5
+# Build session cost string (API-equivalent cost of this session).
+# On a subscription (Plus/Pro) this figure never bills you -- the real
+# constraints are the 5h/wk rate limits below -- so thresholds are relaxed and
+# only flag a genuinely huge session. When billing is real (enterprise org or a
+# bare ANTHROPIC_API_KEY), tighten them so an expensive session stands out.
+#   personal: green < $15, yellow $15-40, red >= $40
+#   work:     green < $5,  yellow $5-15,  red >= $15
+real_billing=0
+case "$org_type" in *enterprise*) real_billing=1 ;; esac
+[ -n "$ANTHROPIC_API_KEY" ] && real_billing=1
+
 cost_str=""
 cost_color="\033[32m"
 if [ -n "$cost" ]; then
   cost_str=$(printf " \$%.2f" "$cost")
-  cost_color=$(awk -v c="$cost" 'BEGIN{ if (c>=5) print "\033[31m"; else if (c>=1) print "\033[33m"; else print "\033[32m" }')
+  cost_color=$(awk -v c="$cost" -v rb="$real_billing" 'BEGIN{
+    if (rb) { hi=15; mid=5 } else { hi=40; mid=15 }
+    if (c>=hi) print "\033[31m"; else if (c>=mid) print "\033[33m"; else print "\033[32m"
+  }')
 fi
 
 # Build rate-limit string (5h session + 7d weekly usage %).
