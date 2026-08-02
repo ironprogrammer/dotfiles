@@ -19,6 +19,12 @@ pct_color() {
   awk -v p="$1" 'BEGIN{ if (p>=80) print "\033[31m"; else if (p>=50) print "\033[33m"; else print "\033[32m" }'
 }
 
+# Format an epoch (seconds) with a strftime pattern. BSD/macOS `date -r` first;
+# on GNU that flag expects a file, so it fails and we fall back to `date -d @`.
+fmt_epoch() {
+  date -r "$1" +"$2" 2>/dev/null || date -d "@$1" +"$2" 2>/dev/null
+}
+
 # --- Account detection (shared script, behaves per-account) ---
 # Find the active account file. When launched with CLAUDE_CONFIG_DIR (e.g. the
 # work `ccw` alias) it lives inside that dir; the personal default lives at
@@ -52,6 +58,8 @@ cost=$(echo "$input" | jq -r '.cost.total_cost_usd // empty')
 used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
 five_h=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
 week=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
+five_h_reset=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // empty')
+week_reset=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // empty')
 input_tokens=$(echo "$input" | jq -r '.context_window.current_usage.input_tokens // empty')
 window_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty')
 
@@ -107,17 +115,23 @@ if [ -n "$cost" ]; then
   }')
 fi
 
-# Build rate-limit string (5h session + 7d weekly usage %).
-# Fields only present for subscription accounts after the first API response;
-# each may be independently absent.
+# Build rate-limit string (5h session + 7d weekly usage %), each followed by
+# when that window resets: clock time for the 5h window (always <5h out), date
+# for the weekly one. Reset markers stay uncolored -- they report a schedule,
+# not a status. Fields only present for subscription accounts after the first
+# API response; usage % and resets_at may each be independently absent.
 limit_str=""
 if [ -n "$five_h" ]; then
   c=$(pct_color "$five_h")
-  limit_str="${limit_str} ${c}5h:$(printf '%.0f' "$five_h")%%\033[0m"
+  r=""
+  [ -n "$five_h_reset" ] && r=$(fmt_epoch "$five_h_reset" "%H:%M")
+  limit_str="${limit_str} ${c}5h:$(printf '%.0f' "$five_h")%%\033[0m${r:+ ($r)}"
 fi
 if [ -n "$week" ]; then
   c=$(pct_color "$week")
-  limit_str="${limit_str} ${c}wk:$(printf '%.0f' "$week")%%\033[0m"
+  r=""
+  [ -n "$week_reset" ] && r=$(fmt_epoch "$week_reset" "%b %-d")
+  limit_str="${limit_str} ${c}wk:$(printf '%.0f' "$week")%%\033[0m${r:+ ($r)}"
 fi
 
 printf "${acct_str}\033[33m%s\033[0m\033[32m%s\033[0m\033[35m%s\033[0m${cost_color}%s\033[0m\033[90m%s\033[0m${limit_str}" \
