@@ -60,7 +60,10 @@ five_h=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty'
 week=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
 five_h_reset=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // empty')
 week_reset=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // empty')
-input_tokens=$(echo "$input" | jq -r '.context_window.current_usage.input_tokens // empty')
+# Context size: total_input_tokens is the whole prompt. Do NOT use
+# current_usage.input_tokens -- that's only the uncached remainder of the last
+# request, which sits at ~2 once the prompt cache is warm.
+input_tokens=$(echo "$input" | jq -r '.context_window.total_input_tokens // empty')
 window_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty')
 
 # Format numbers with comma separators
@@ -74,12 +77,15 @@ fi
 # Git branch (skip optional locks)
 branch=$(git -C "$cwd" --no-optional-locks symbolic-ref --short HEAD 2>/dev/null || git -C "$cwd" --no-optional-locks rev-parse --short HEAD 2>/dev/null)
 
-# Build context string
+# Build context string. The percentage carries the same green/yellow/red
+# thresholds as the 5h/wk windows above; the raw token counts stay dim since
+# they're detail, not status. Note the %% -- ctx_str is spliced into the
+# printf *format*, like limit_str, so a literal percent must be escaped.
 ctx_str=""
-if [ -n "$used" ] && [ -n "$fmt_tokens" ]; then
-  ctx_str=" ctx:${used}% (${fmt_tokens} / ${fmt_window})"
-elif [ -n "$used" ]; then
-  ctx_str=" ctx:${used}%"
+if [ -n "$used" ]; then
+  c=$(pct_color "$used")
+  ctx_str=" ${c}ctx:${used}%%\033[0m"
+  [ -n "$fmt_tokens" ] && ctx_str="${ctx_str} \033[90m(${fmt_tokens} / ${fmt_window})\033[0m"
 fi
 
 # Build git string
@@ -134,5 +140,5 @@ if [ -n "$week" ]; then
   limit_str="${limit_str} ${c}wk:$(printf '%.0f' "$week")%%\033[0m${r:+ ($r)}"
 fi
 
-printf "${acct_str}\033[33m%s\033[0m\033[32m%s\033[0m\033[35m%s\033[0m${cost_color}%s\033[0m\033[90m%s\033[0m${limit_str}" \
-  "$dir" "$git_str" "$model_str" "$cost_str" "$ctx_str"
+printf "${acct_str}\033[33m%s\033[0m\033[32m%s\033[0m\033[35m%s\033[0m${cost_color}%s\033[0m${ctx_str}${limit_str}" \
+  "$dir" "$git_str" "$model_str" "$cost_str"
