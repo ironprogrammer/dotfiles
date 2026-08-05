@@ -1,16 +1,13 @@
 #!/bin/sh
 input=$(cat)
 
-# Portable thousands separator (BSD/macOS awk safe)
-fmt_num() {
-  printf "%d" "$1" | awk '{
-    n=$0; s=""; len=length(n)
-    for (i=1; i<=len; i++) {
-      s = s substr(n,i,1)
-      r = len - i
-      if (r > 0 && r % 3 == 0) s = s ","
-    }
-    print s
+# Compact a window size for display: 1000000 -> 1M, 200000 -> 200k. Keeps one
+# decimal only when the value isn't a round multiple (1500000 -> 1.5M).
+fmt_short() {
+  awk -v n="$1" 'BEGIN{
+    if (n >= 1000000) printf "%gM", n/1000000
+    else if (n >= 1000) printf "%gk", n/1000
+    else printf "%d", n
   }'
 }
 
@@ -60,32 +57,25 @@ five_h=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty'
 week=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
 five_h_reset=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // empty')
 week_reset=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // empty')
-# Context size: total_input_tokens is the whole prompt. Do NOT use
-# current_usage.input_tokens -- that's only the uncached remainder of the last
-# request, which sits at ~2 once the prompt cache is warm.
-input_tokens=$(echo "$input" | jq -r '.context_window.total_input_tokens // empty')
+# Window size only. The raw token count is redundant with used_percentage; the
+# window itself isn't, since it says whether a given percent is of 200k or 1M.
 window_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty')
 
-# Format numbers with comma separators
-fmt_tokens=""
 fmt_window=""
-if [ -n "$input_tokens" ] && [ -n "$window_size" ]; then
-  fmt_tokens=$(fmt_num "$input_tokens")
-  fmt_window=$(fmt_num "$window_size")
-fi
+[ -n "$window_size" ] && fmt_window=$(fmt_short "$window_size")
 
 # Git branch (skip optional locks)
 branch=$(git -C "$cwd" --no-optional-locks symbolic-ref --short HEAD 2>/dev/null || git -C "$cwd" --no-optional-locks rev-parse --short HEAD 2>/dev/null)
 
 # Build context string. The percentage carries the same green/yellow/red
-# thresholds as the 5h/wk windows above; the raw token counts stay dim since
-# they're detail, not status. Note the %% -- ctx_str is spliced into the
-# printf *format*, like limit_str, so a literal percent must be escaped.
+# thresholds as the 5h/wk windows above; the window size stays dim since it's
+# detail, not status. Note the %% -- ctx_str is spliced into the printf
+# *format*, like limit_str, so a literal percent must be escaped.
 ctx_str=""
 if [ -n "$used" ]; then
   c=$(pct_color "$used")
   ctx_str=" ${c}ctx:${used}%%\033[0m"
-  [ -n "$fmt_tokens" ] && ctx_str="${ctx_str} \033[90m(${fmt_tokens} / ${fmt_window})\033[0m"
+  [ -n "$fmt_window" ] && ctx_str="${ctx_str} \033[90m(${fmt_window})\033[0m"
 fi
 
 # Build git string
