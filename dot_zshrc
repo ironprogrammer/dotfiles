@@ -77,6 +77,9 @@ COMPLETION_WAITING_DOTS="true"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git git-prompt brew wp-cli sublime thefuck)
 # git clone https://github.com/lukechilds/zsh-nvm ~/.oh-my-zsh/custom/plugins/zsh-nvm
+# Auto-switch node versions from .nvmrc on directory change. Must be set before
+# zsh-nvm loads via `source $ZSH/oh-my-zsh.sh`.
+export NVM_AUTO_USE=true
 plugins+=(zsh-nvm composer)
 #plugins+=(ssh dotenv colorize z)
 
