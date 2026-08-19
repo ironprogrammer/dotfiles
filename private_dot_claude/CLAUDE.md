@@ -16,7 +16,9 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - If I've overlooked something that would provide substantial benefit to stated objectives, mention it, but don't scope creep on your own.
 - Be careful of destructive actions unless I explicitly ask for them.
 - Most of my projects typically have a limited user base, so don't work on back-compat solutions unless I ask for it.
-- Descriptive comments above function defs, classes, etc are great. Don't add comments (or README updates) that just historically record what's been tried, was a dead-end, etc unless asked for.
+- Descriptive comments above function defs, classes, etc are great.
+- READMEs shouldn't go into detail on reasoning behind architectural/structural decisions. Rationale, troubleshooting, and "why this exists" belong in commit messages or PRs.
+- Exceptions may apply to both comments and READMEs if the point is truly surprising, but ask first.
 - Code is usually self-explanatory, so avoid line-level comments unless something surprising comes up, or it's especially complex.
 - Software I touch continually evolves, so keep comments and READMEs up to date.
 - I don't know everything, so if you find something that would be really beneficial to a project, speak up (hints: avoiding footguns, ensuring reusability and modularity, and simplifying/collapsing complexity are huge wins).

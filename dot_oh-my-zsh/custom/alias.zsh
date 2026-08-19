@@ -40,7 +40,7 @@ q() {
 alias cc='claude --dangerously-skip-permissions'
 alias claude-work='CLAUDE_CONFIG_DIR=~/.claude-work claude'
 alias ccw='claude-work --dangerously-skip-permissions'
-alias claudeup='claude update && brew upgrade --cask claude' # claude-code now native
+alias claudeup='claude update' # faster release than updating cask
 
 # Codex things
 alias oc='codex -a never -s workspace-write'
