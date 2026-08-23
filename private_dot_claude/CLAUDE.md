@@ -35,6 +35,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - Use curl when you can for direct tests on things that don't require a full browser.
 - Browser work goes through agent-browser, unless the local test suite says otherwise. Only use claude-in-chrome when live sessions are needed, and state why.
 - In `agent-browser batch`, flags go before subcommand.
+- Before running agent-browser, load its usage guide with `agent-browser skills get core` (add `--full` for the complete command reference and templates). This content ships with the CLI and always matches the installed version, so never cache or copy it.
 - If a browser tool fails twice, stop and tell me. They won't recover on their own.
 - Never say "green", "passing", or "done" without a captured exit code or a run URL in the same message. If it wasn't run, say it wasn't run.
 - Remember to rebuild as needed if you ask me to take a look at a change.
