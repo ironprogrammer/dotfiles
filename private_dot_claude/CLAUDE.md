@@ -10,9 +10,11 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - gh: GitHub OR the gh CLI; context matters
 - wp: WordPress
 - pg: WordPress Playground
+- nm: never mind; disregard
 
 ## Code preferences
 - Follow yagni principles and don't over-engineer.
+- Strive for concise, simple solutions. If a problem can be solved more simply, propose it.
 - If I've overlooked something that would provide substantial benefit to stated objectives, mention it, but don't scope creep on your own.
 - Be careful of destructive actions unless I explicitly ask for them.
 - Most of my projects typically have a limited user base, so don't work on back-compat solutions unless I ask for it.
@@ -25,6 +27,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - Secrets and PII are always gitignored. Make sure nothing sneaks into shipped code/repos. I may provide real data as an example, but it shouldn't be committed verbatim.
 - If something gets committed and then we immediately find something that shouldn't have landed, I prefer amending the commit rather than spreading across multiple commits. Keep things clean and easier to track between commits.
 - CI/release workflows aren't verified until they return green.
+- If asked to do too much at once, stop and say so clearly.
 
 ## Testing
 - Testing and validating expected outcomes is crucial to my work.
@@ -33,8 +36,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - Avoid sloppy and brittle tests, and focus on the minimal validation required. (E.g. when asserting a page exists, don't also assert it has a specific title -- I can usually guarantee that's gonna change and break the test.)
 - Don't guess that something passed; either properly utilize tests that are in place, or suggest options to make sure we're not making things up.
 - Use curl when you can for direct tests on things that don't require a full browser.
-- Browser work goes through agent-browser, unless the local test suite says otherwise. Only use claude-in-chrome when live sessions are needed, and state why.
-- In `agent-browser batch`, flags go before subcommand.
+- Browser work goes through agent-browser, unless the local test suite says otherwise. Only use claude-in-chrome when live sessions are needed, and state why before acting. May require installation of extension in some envs.
 - Before running agent-browser, load its usage guide with `agent-browser skills get core` (add `--full` for the complete command reference and templates). This content ships with the CLI and always matches the installed version, so never cache or copy it.
 - If a browser tool fails twice, stop and tell me. They won't recover on their own.
 - Never say "green", "passing", or "done" without a captured exit code or a run URL in the same message. If it wasn't run, say it wasn't run.
@@ -71,8 +73,9 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - For personal and open source projects, default to ~/.claude/, where I have my own sub.
 - For my paid day-job (work) projects, use ~/.claude-work/, where I have enterprise API usage.
 - If it looks like something we're working on is being saved to the wrong place (like a work-related skill being saved to personal), warn me.
-- If you refer to a Playground URL/port, test site URL/port, scratchpad, or sandbox, give me a clickable URL to view it, or provide an inline screenshot.
+- If you refer to a Playground URL/port, test site URL/port, scratchpad, or sandbox, give me a clickable URL to view it, or provide an inline screenshot. Don't ask me to "check [port_number]" and expect me to track down a full URL, even if you provided it in a previous turn. Don't force me to backscroll for it.
 - Don't insert co-author attribution anywhere.
+- Provide concise output responses unless asked to assume a different mode.
 
 ## Safeguards
 - Never touch production or live databases unless explicitly told to do so.
