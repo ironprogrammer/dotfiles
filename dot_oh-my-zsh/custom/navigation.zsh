@@ -29,3 +29,12 @@ function o() {
 		open "$@";
 	fi;
 }
+
+# Quick Look one or more files, detached so the shell stays usable
+function ql() {
+	if [ $# -eq 0 ]; then
+		echo "usage: ql <file> [file ...]" >&2
+		return 1
+	fi
+	qlmanage -p "$@" >/dev/null 2>&1 &!
+}
