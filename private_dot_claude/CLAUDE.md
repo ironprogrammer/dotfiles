@@ -1,7 +1,7 @@
 
 I'm Brian, a full-stack generalist who also loves to automate things. I do a lot of work in WordPress and the terminal. I like to build complex things using simple solutions; pragmatism is my jam. I prefer easier to grok and maintain approaches when possible. Tabs in code; Oxford commas in writing.
 
-I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.com (WordPress), which is dedicated to my blog and plugins I use personally, and https://ironprogrammer.com (GH pages), which is focused on open source development work and tools I share freely. In chats and a lot of my public-facing writing (e.g. my blog), I tend to write in all lowercase because it saves pinky keystrokes and is a stylistic marker. However, I love English and write/speak in US standard in most other contexts.
+I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.com (WordPress), which is dedicated to my blog and plugins I use personally, and https://ironprogrammer.com (GH pages), which is focused on open source development work and tools I share freely. In chats and a lot of my public-facing writing (e.g. my blog), I tend to write in all lowercase because it saves pinky keystrokes and is a stylistic marker. However, I love English and write/speak in US standard in other contexts, including code documentation and comments.
 
 ## Glossary
 - me: Brian, aka ironprogrammer
@@ -28,6 +28,8 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - If something gets committed and then we immediately find something that shouldn't have landed, I prefer amending the commit rather than spreading across multiple commits. Keep things clean and easier to track between commits.
 - CI/release workflows aren't verified until they return green.
 - If asked to do too much at once, stop and say so clearly.
+- Remember to rebuild as needed if you ask me to take a look at a change.
+- I have ~/.gitconfig and ~/.gitignore_global; let git use these, and don't override unless instructed/required to.
 
 ## Testing
 - Testing and validating expected outcomes is crucial to my work.
@@ -40,18 +42,14 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - Before running agent-browser, load its usage guide with `agent-browser skills get core` (add `--full` for the complete command reference and templates). This content ships with the CLI and always matches the installed version, so never cache or copy it.
 - If a browser tool fails twice, stop and tell me. They won't recover on their own.
 - Never say "green", "passing", or "done" without a captured exit code or a run URL in the same message. If it wasn't run, say it wasn't run.
-- Remember to rebuild as needed if you ask me to take a look at a change.
+- Tests need to be run before commit, creating a PR, or cutting a release.
 
 ## WordPress
 - Use established WordPress coding standards, WPCS/PHPCS, DocBlocks, etc. Follow conventions required by a WordPress Core contributor.
 - For WordPress Core work, all PRs require test coverage for the update/feature.
-- For plugins, also add test coverage, basing as closely as possible to how Core does it.
+- For plugins, also add test coverage, following as closely as possible to how Core does it.
 - Make sure plugins pass Plugin Check (PCP) checks. Install the PCP plugin if needed.
 - Remember that WordPress URLs always have trailing slashes (/). Avoid wasteful 301 redirects by ensuring this convention is followed.
-- For Playground:
-	- Before starting, make sure the port is available. If required, free it and pick one you can stick to for this project.
-	- Avoid double-mount by passing absolute paths for --mount and --blueprint.
-	- Don't `sleep n` then curl. Poll with `until curl ...`
 
 ## Environments
 - I usually run Valet (and therefore PHP, MariaDB/SQLite) for sites and SPAs.
@@ -61,7 +59,6 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - I use Homebrew. Check brew if something is missing, but confirm before installing or updating anything.
 - My dotfiles are synced between machines using chezmoi.
 - When .nvmrc present, use it, otherwise suggest adding before running node tooling.
-- Kill Playground or dev servers you started when we're done using them.
 - No coreutils. `timeout/gtimeout` don't exist, and don't install them. Use shell's own timeout param, `curl max-time`, or background-and-poll.
 
 ## Questions are read-only
