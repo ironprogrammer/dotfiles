@@ -57,6 +57,8 @@ five_h=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty'
 week=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
 five_h_reset=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // empty')
 week_reset=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // empty')
+spend=$(echo "$input" | jq -r '.rate_limits.spend_limit.used_percentage // empty')
+spend_reset=$(echo "$input" | jq -r '.rate_limits.spend_limit.resets_at // empty')
 # Window size only. The raw token count is redundant with used_percentage; the
 # window itself isn't, since it says whether a given percent is of 200k or 1M.
 window_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty')
@@ -111,11 +113,12 @@ if [ -n "$cost" ]; then
   }')
 fi
 
-# Build rate-limit string (5h session + 7d weekly usage %), each followed by
-# when that window resets: clock time for the 5h window (always <5h out), date
-# for the weekly one. Reset markers stay uncolored -- they report a schedule,
-# not a status. Fields only present for subscription accounts after the first
-# API response; usage % and resets_at may each be independently absent.
+# Build rate-limit string (5h session + 7d weekly + usage credits), each
+# followed by when that window resets: clock time for the 5h window (always <5h
+# out), date for the others. Reset markers stay uncolored -- they report a
+# schedule, not a status. Fields only appear after the first API response: 5h/wk
+# for subscription accounts, cr behind a Claude gateway that sets a spend limit
+# for you. Usage % and resets_at may each be independently absent.
 limit_str=""
 if [ -n "$five_h" ]; then
   c=$(pct_color "$five_h")
@@ -128,6 +131,16 @@ if [ -n "$week" ]; then
   r=""
   [ -n "$week_reset" ] && r=$(fmt_epoch "$week_reset" "%b %-d")
   limit_str="${limit_str} ${c}wk:$(printf '%.0f' "$week")%%\033[0m${r:+ ($r)}"
+fi
+# Usage credits (gateway spend limit). The gateway sends whichever of its
+# limits is fullest, so the period varies (daily/weekly/monthly) -- the reset
+# marker is what says which, hence no period in the label. Unlike 5h/wk this
+# can exceed 100%, which stays red under the same thresholds.
+if [ -n "$spend" ]; then
+  c=$(pct_color "$spend")
+  r=""
+  [ -n "$spend_reset" ] && r=$(fmt_epoch "$spend_reset" "%b %-d")
+  limit_str="${limit_str} ${c}cr:$(printf '%.0f' "$spend")%%\033[0m${r:+ ($r)}"
 fi
 
 printf "${acct_str}\033[33m%s\033[0m\033[32m%s\033[0m\033[35m%s\033[0m${cost_color}%s\033[0m${ctx_str}${limit_str}" \
