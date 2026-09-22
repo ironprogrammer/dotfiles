@@ -50,6 +50,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - For plugins, also add test coverage, following as closely as possible to how Core does it.
 - Make sure plugins pass Plugin Check (PCP) checks. Install the PCP plugin if needed.
 - Remember that WordPress URLs always have trailing slashes (/). Avoid wasteful 301 redirects by ensuring this convention is followed.
+- When querying post, page, or CPT data, assume public unless otherwise specified.
 
 ## Environments
 - I usually run Valet (and therefore PHP, MariaDB/SQLite) for sites and SPAs.
