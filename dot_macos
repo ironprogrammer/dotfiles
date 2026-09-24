@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+# macOS preferences. Run with `sh ~/.macos`, then log out and back in to apply.
+
+# Keyboard: delay until repeat (default 15 = 225ms; lower is shorter).
+defaults write NSGlobalDomain InitialKeyRepeat -int 13
+# Reset to default: defaults delete NSGlobalDomain InitialKeyRepeat
+
+# Keyboard: key repeat rate (default 2 = 30ms; lower is faster).
+defaults write NSGlobalDomain KeyRepeat -float 1.5
+# Reset to default: defaults delete NSGlobalDomain KeyRepeat
