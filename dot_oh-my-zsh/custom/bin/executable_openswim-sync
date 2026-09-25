@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+#
+# Syncs a Music app playlist to a Shokz OpenSwim as numbered MP3s.
+#
+# Each track plays in Music while sox records the Loopback device.
+# The recording is trimmed of edge silence and saved to a local cache.
+# Cached tracks are reused by title, so reruns only record new tracks.
+# The OpenSwim is then wiped and refilled in playlist order.
+#
+# Usage: openswim-sync [playlist]   (default: Swim)
+
+set -euo pipefail
+
+PLAYLIST="${1:-Swim}"
+DEVICE="Music"
+VOLUME="/Volumes/OpenSwim"
+CACHE="$HOME/Music/OpenSwim/$PLAYLIST"
+MAXLEN=30
+
+[[ -d "$VOLUME" ]] || { echo "OpenSwim not mounted at $VOLUME" >&2; exit 1; }
+mkdir -p "$CACHE"
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+# Makes a FAT-safe, truncated filename stem from a track title.
+short_name() {
+	local s
+	s="$(printf '%s' "$1" | tr '/\\:*?"<>|' '_________')"
+	s="${s:0:$MAXLEN}"
+	s="${s%"${s##*[![:space:].]}"}"
+	printf '%s' "$s"
+}
+
+# Records one playlist track (by index) to a WAV file.
+record_track() {
+	local index="$1" wav="$2" pid
+	sox -q -t coreaudio "$DEVICE" -b 16 "$wav" &
+	pid=$!
+	sleep 1
+	osascript - "$PLAYLIST" "$index" <<'OSA'
+on run {pl, idx}
+	tell application "Music"
+		set shuffle enabled to false
+		set t to track (idx as integer) of playlist pl
+		set tid to persistent ID of t
+		set dur to duration of t
+		play t
+		set waited to 0
+		repeat while player state is not playing and waited < 60
+			delay 0.1
+			set waited to waited + 0.1
+		end repeat
+		repeat while player state is playing
+			if persistent ID of current track is not tid then exit repeat
+			if player position >= dur - 0.15 then exit repeat
+			delay 0.1
+		end repeat
+		pause
+	end tell
+end run
+OSA
+	kill -INT "$pid"
+	wait "$pid" || true
+}
+
+TRACKS="$(osascript - "$PLAYLIST" <<'OSA'
+on run {pl}
+	tell application "Music"
+		set out to ""
+		repeat with t in tracks of playlist pl
+			set out to out & (name of t) & tab & (artist of t) & linefeed
+		end repeat
+		return out
+	end tell
+end run
+OSA
+)"
+
+TOTAL="$(printf '%s\n' "$TRACKS" | grep -c .)"
+KEEP=()
+i=0
+while IFS=$'\t' read -r title artist; do
+	[[ -n "$title" ]] || continue
+	i=$((i + 1))
+	num="$(printf '%02d' "$i")"
+	stem="$(short_name "$title")"
+	target="$CACHE/$num - $stem.mp3"
+	KEEP+=("$num - $stem.mp3")
+
+	existing="$(find "$CACHE" -maxdepth 1 -name "[0-9][0-9] - $stem.mp3" ! -path "$target" | head -n1)"
+	if [[ -f "$target" ]]; then
+		echo "[$num/$TOTAL] cached: $title"
+	elif [[ -n "$existing" ]]; then
+		mv "$existing" "$target"
+		echo "[$num/$TOTAL] renumbered: $title"
+	else
+		echo "[$num/$TOTAL] recording: $title"
+		record_track "$i" "$TMP/rec.wav" </dev/null
+		ffmpeg -nostdin -loglevel error -y -i "$TMP/rec.wav" \
+			-af "silenceremove=start_periods=1:start_duration=0.05:start_threshold=-60dB,areverse,silenceremove=start_periods=1:start_duration=0.05:start_threshold=-60dB,areverse" \
+			-codec:a libmp3lame -q:a 6 \
+			-metadata title="$title" -metadata artist="$artist" -metadata album="$PLAYLIST" -metadata track="$i" \
+			"$target"
+		rm -f "$TMP/rec.wav"
+	fi
+done <<< "$TRACKS"
+
+for f in "$CACHE"/*.mp3; do
+	[[ -e "$f" ]] || continue
+	[[ " ${KEEP[*]} " == *" $(basename "$f") "* ]] || { rm -f "$f"; echo "removed from cache: $(basename "$f")"; }
+done
+
+echo "Refreshing $VOLUME..."
+find "$VOLUME" -maxdepth 1 -type f -name '._*' -delete
+find "$VOLUME" -maxdepth 1 -type f -iname '*.mp3' -delete
+for name in "${KEEP[@]}"; do
+	COPYFILE_DISABLE=1 cp -X "$CACHE/$name" "$VOLUME/"
+done
+dot_clean -f -m "$VOLUME"
+echo "Done: $TOTAL tracks on $VOLUME"
