@@ -5,7 +5,7 @@
 # Each track plays in Music while sox records the Loopback device.
 # The recording is trimmed of edge silence and saved to a local cache.
 # Cached tracks are reused by title, so reruns only record new tracks.
-# The OpenSwim is then wiped and refilled in playlist order.
+# If the OpenSwim is mounted, it is then wiped and refilled in playlist order.
 #
 # Usage: openswim-sync [playlist]   (default: Swim)
 
@@ -21,7 +21,8 @@ for dep in sox ffmpeg; do
 	command -v "$dep" >/dev/null || { echo "Missing dependency: $dep" >&2; exit 1; }
 done
 
-[[ -d "$VOLUME" ]] || { echo "OpenSwim not mounted at $VOLUME" >&2; exit 1; }
+MOUNTED=1
+[[ -d "$VOLUME" ]] || { echo "Warning: OpenSwim not mounted at $VOLUME; caching only." >&2; MOUNTED=0; }
 
 devices="$(ffmpeg -hide_banner -f avfoundation -list_devices true -i "" 2>&1 || true)"
 grep -qE "^\[AVFoundation.*\] \[[0-9]+\] ${DEVICE}\$" <<< "$devices" ||
@@ -131,6 +132,11 @@ for f in "$CACHE"/*.mp3; do
 	[[ -e "$f" ]] || continue
 	[[ " ${KEEP[*]} " == *" $(basename "$f") "* ]] || { rm -f "$f"; echo "removed from cache: $(basename "$f")"; }
 done
+
+if [[ "$MOUNTED" == 0 ]]; then
+	echo "Cached $TOTAL tracks in $CACHE. Rerun with OpenSwim connected to sync."
+	exit 0
+fi
 
 echo "Refreshing $VOLUME..."
 find "$VOLUME" -maxdepth 1 -type f -name '._*' -delete
