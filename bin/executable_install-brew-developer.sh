@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-#
-# install-brew-developer.sh
+# Install lean Homebrew developer toolchain
 # -----------------------------------------------------------------------------
 # Lean developer toolchain. Run this on any machine you write/run/test code on.
 # Pairs with install-brew-general.sh (desktop apps, media, productivity).
@@ -8,7 +7,7 @@
 # NOTE: PHP itself (php@8.x, imagick, etc.) is intentionally NOT here — that
 #       stack is managed via PHP Monitor, not Homebrew, across machines.
 #
-# Usage:  ./install-brew-developer.sh
+# Usage:  install-brew-developer.sh
 # Idempotent — Homebrew skips anything already installed.
 # -----------------------------------------------------------------------------
 set -euo pipefail

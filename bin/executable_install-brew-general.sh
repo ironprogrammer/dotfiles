@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-#
-# install-brew-general.sh
+# Install everyday Homebrew apps: desktop, media, communication, utilities
 # -----------------------------------------------------------------------------
 # Everyday / non-dev machine setup: desktop apps, media & creative tools,
 # communication, and general utilities.
@@ -9,7 +8,7 @@
 # On your primary daily-driver you'll likely run BOTH scripts; on a dedicated
 # dev box, run only install-brew-developer.sh.
 #
-# Usage:  ./install-brew-general.sh
+# Usage:  install-brew-general.sh
 # Idempotent — Homebrew skips anything already installed.
 # -----------------------------------------------------------------------------
 set -euo pipefail
