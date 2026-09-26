@@ -114,6 +114,10 @@ unfunction _prune_stale_zcompdump
 
 source $ZSH/oh-my-zsh.sh
 
+# Personal aliases and functions
+for f in ~/.config/zsh/*.zsh(N); do source "$f"; done
+unset f
+
 # Spaceship: use Nerd Font battery glyph for low-battery indicator
 SPACESHIP_BATTERY_SYMBOL_DISCHARGING=$' '  #  nf-fa-battery_empty
 
@@ -166,6 +170,3 @@ export VISUAL="subl -n -w"
 
 export PATH=$HOME/bin:~/.config/phpmon/bin:$PATH
 
-
-# shades CLI
-shades() { /opt/homebrew/bin/python3 /Users/brian/Sites/shades/shades.py "$@"; }

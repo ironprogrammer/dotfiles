@@ -86,12 +86,12 @@ alias show="defaults write com.apple.finder AppleShowAllFiles -bool true && kill
 alias hide="defaults write com.apple.finder AppleShowAllFiles -bool false && killall Finder"
 
 # Hide/show all desktop icons (useful when presenting)
-alias hidedesktop="defaults write com.apple.finder CreateDesktop -bool false && killall inder"
+alias hidedesktop="defaults write com.apple.finder CreateDesktop -bool false && killall Finder"
 
 alias showdesktop="defaults write com.apple.finder CreateDesktop -bool true && killall Finder"
 
 # URL-encode strings
-alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1]);"'
+alias urlencode='python3 -c "import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))"'
 
 # Intuitive map function
 # For example, to list all directories that contain a certain file:
@@ -104,9 +104,6 @@ alias path='echo -e ${PATH//:/\\n}'
 # Reload Oh My Zsh
 alias reload='omz reload && echo omz reloaded.'
 alias rl=reload
-
-# Fun thing from @andrei: https://a8c.slack.com/archives/G03LTST0U/p1643803058180189
-alias yolo=echo git commit -m "$(curl -s http://whatthecommit.com/index.txt)"
 
 # Ding! All done! e.g. brew upgrade ; ding
 alias ding='afplay /System/Library/Sounds/Submarine.aiff -v 10'

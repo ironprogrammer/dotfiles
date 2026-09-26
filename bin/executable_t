@@ -17,8 +17,8 @@ filter="${1:-}"
 [[ -n "$filter" ]] && long=true
 # Non-tty (piped) also implies long for clean parseable output
 [[ ! -t 1 ]] && long=true
-custom_dir="$HOME/.oh-my-zsh/custom"
-bin_dir="$custom_dir/bin"
+config_dir="$HOME/.config/zsh"
+bin_dir="$HOME/bin"
 self="$(basename "$0")"
 
 if [[ -t 1 ]]; then
@@ -139,7 +139,7 @@ for f in "$bin_dir"/*(N); do
 done
 bin_lines=("${(@on)bin_lines}")
 
-# Collect sourced functions from custom *.zsh files
+# Collect sourced functions from ~/.config/zsh/*.zsh
 typeset -a func_lines
 while IFS= read -r line; do
     [[ -z "$line" ]] && continue
@@ -148,7 +148,7 @@ while IFS= read -r line; do
     matches "$name" "$desc" || continue
     func_lines+=("$line")
 done < <(
-    for f in "$custom_dir"/*.zsh(N); do
+    for f in "$config_dir"/*.zsh(N); do
         awk '
             function clean(s) { sub(/^[[:space:]]*#[[:space:]]*/, "", s); return s }
             function boilerplate(s) {
