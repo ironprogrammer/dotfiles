@@ -1,0 +1,14 @@
+[".oh-my-zsh"]
+	type = "git-repo"
+	url = "https://github.com/ohmyzsh/ohmyzsh.git"
+	refreshPeriod = "168h"
+
+[".oh-my-zsh/custom/themes/spaceship-prompt"]
+	type = "git-repo"
+	url = "https://github.com/spaceship-prompt/spaceship-prompt.git"
+	refreshPeriod = "168h"
+
+[".oh-my-zsh/custom/plugins/zsh-nvm"]
+	type = "git-repo"
+	url = "https://github.com/lukechilds/zsh-nvm.git"
+	refreshPeriod = "168h"
