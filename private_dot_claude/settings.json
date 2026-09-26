@@ -1,5 +1,13 @@
 {
-  "model": "opus",
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/brian/.claude/statusline-command.sh"
+  },
+  "outputStyle": "Concise",
   "effortLevel": "high",
   "modelSettings": {
     "claude-fable-5-1": {
@@ -9,22 +17,13 @@
       "effortLevel": "medium"
     }
   },
-  "outputStyle": "Concise",
   "tui": "fullscreen",
-  "statusLine": {
-    "type": "command",
-    "command": "bash /Users/brian/.claude/statusline-command.sh"
-  },
   "voice": {
     "enabled": true,
     "mode": "hold"
   },
-  "voiceEnabled": true,
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  },
-  "skipDangerousModePermissionPrompt": true,
   "autoMemoryEnabled": false,
-  "agentPushNotifEnabled": true
+  "skipDangerousModePermissionPrompt": true,
+  "agentPushNotifEnabled": true,
+  "voiceEnabled": true
 }

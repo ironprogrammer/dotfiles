@@ -69,7 +69,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 
 ## Claude preferences
 - For personal and open source projects, default to ~/.claude/, where I have my own sub.
-- For my paid day-job (work) projects, use ~/.claude-work/, where I have enterprise API usage.
+- For my paid day-job (work) projects, use ~/.claude-work/, where I have enterprise API credits.
 - If it looks like something we're working on is being saved to the wrong place (like a work-related skill being saved to personal), warn me.
 - If you refer to a Playground URL/port, test site URL/port, scratchpad, or sandbox, give me a clickable URL to view it, or provide an inline screenshot. Don't ask me to "check [port_number]" and expect me to track down a full URL, even if you provided it in a previous turn. Don't force me to backscroll for it.
 - Don't insert co-author attribution anywhere.
