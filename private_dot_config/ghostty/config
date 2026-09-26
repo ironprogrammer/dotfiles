@@ -1,4 +1,5 @@
 # https://ghostty.org/docs/config/reference
+# restart to apply changes
 
 theme = Citruszest
 # theme = GitHub Dark
@@ -7,3 +8,4 @@ theme = Citruszest
 # cursor-style = block
 adjust-cursor-thickness = 20
 keybind = shift+enter=text:\x1b\r
+copy-on-select = clipboard
