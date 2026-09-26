@@ -17,7 +17,29 @@ VOLUME="/Volumes/OpenSwim"
 CACHE="$HOME/Music/OpenSwim/$PLAYLIST"
 MAXLEN=30
 
+for dep in sox ffmpeg; do
+	command -v "$dep" >/dev/null || { echo "Missing dependency: $dep" >&2; exit 1; }
+done
+
 [[ -d "$VOLUME" ]] || { echo "OpenSwim not mounted at $VOLUME" >&2; exit 1; }
+
+devices="$(ffmpeg -hide_banner -f avfoundation -list_devices true -i "" 2>&1 || true)"
+grep -qE "^\[AVFoundation.*\] \[[0-9]+\] ${DEVICE}\$" <<< "$devices" ||
+	{ echo "Audio device \"$DEVICE\" not found; is the Loopback device set up?" >&2; exit 1; }
+
+# Music's Automix crossfades tracks, which corrupts the end of every recording.
+# The preference key is undocumented, so a missing key only warns.
+transitions="$(defaults read com.apple.Music TransitionsEnabled 2>/dev/null || echo missing)"
+case "$transitions" in
+	0) ;;
+	missing)
+		echo "Warning: could not read Automix state; make sure it is off in Music." >&2
+		;;
+	*)
+		echo "Automix appears to be ON, which will corrupt the end of each track." >&2
+		read -r -p "Disable it in Music, then press return to continue (or Ctrl-C to quit) " _ < /dev/tty
+		;;
+esac
 mkdir -p "$CACHE"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
