@@ -112,12 +112,12 @@ while IFS=$'\t' read -r title artist; do
 
 	existing="$(find "$CACHE" -maxdepth 1 -name "[0-9][0-9] - $stem.mp3" ! -path "$target" | head -n1)"
 	if [[ -f "$target" ]]; then
-		echo "[$num/$TOTAL] cached: $title"
+		echo "[$i/$TOTAL] cached: $title"
 	elif [[ -n "$existing" ]]; then
 		mv "$existing" "$target"
-		echo "[$num/$TOTAL] renumbered: $title"
+		echo "[$i/$TOTAL] renumbered: $title"
 	else
-		echo "[$num/$TOTAL] recording: $title"
+		echo "[$i/$TOTAL] recording: $title"
 		record_track "$i" "$TMP/rec.wav" </dev/null
 		ffmpeg -nostdin -loglevel error -y -i "$TMP/rec.wav" \
 			-af "silenceremove=start_periods=1:start_duration=0.05:start_threshold=-60dB,areverse,silenceremove=start_periods=1:start_duration=0.05:start_threshold=-60dB,areverse" \
