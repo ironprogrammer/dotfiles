@@ -1,89 +1,29 @@
-# Lean developer toolchain for any machine that writes, runs, or tests code.
-# Pairs with Brewfile.general (desktop apps, media, productivity).
+# WordPress/PHP development, added on top of Brewfile.base on dev machines.
 #
 # Install:     brew bundle --file=~/.config/homebrew/Brewfile.dev
-# Drift check (both files, or each flags the other's packages):
-#   cat ~/.config/homebrew/Brewfile.* | brew bundle cleanup --file=-
+# Drift check: see README.md.
 #
 # PHP, nginx, and dnsmasq are installed and managed by Valet and PHP Monitor;
-# don't add them here. New machine: run this (installs PHP Monitor), then
-# `composer global require laravel/valet && valet install`.
-
-tap "domt4/autoupdate"         # scheduled brew update/upgrade (brew autoupdate)
-
-# --- Core terminal / shell ---
-brew "bat"                     # cat with syntax highlighting
-brew "tree"                    # directory tree view
-brew "ripgrep"                 # fast recursive grep (rg)
-brew "git"                     # Homebrew git (newer than system/Xcode git)
-brew "git-delta"               # nicer git diffs
-brew "gh"                      # GitHub CLI
-brew "gnupg"                   # GPG signing/encryption
-brew "pinentry-mac"            # GPG pinentry on macOS
-brew "thefuck"                 # corrects the previous mistyped command
-brew "glow"                    # markdown renderer in the terminal
-brew "chezmoi"                 # dotfile management
-brew "zsh-autosuggestions"     # shell QoL
-brew "zsh-syntax-highlighting" # shell QoL
-
-# --- Editors & runtimes ---
-brew "helix"                   # modal terminal editor
-brew "node"                    # Node.js runtime
-brew "deno"                    # Deno runtime
-
-# --- AI / agent tooling ---
-brew "llm"                     # Simon Willison's LLM CLI
-brew "gemini-cli"              # Google Gemini CLI
-brew "agent-browser"           # browser automation for agents
-brew "skills"                  # Claude skills tooling
+# don't add them here. New machine setup: see README.md.
 
 # --- Local dev services ---
 brew "mariadb"                 # local MySQL-compatible DB
 brew "mkcert"                  # locally-trusted dev TLS certs
 brew "mailpit"                 # local SMTP capture / email testing UI
 brew "wp-cli"                  # WordPress CLI
+brew "composer"                # PHP dependency manager (needed for Valet)
+brew "subversion"              # svn (WordPress.org plugin repos)
 
-# --- Build / source / profiling ---
-brew "subversion"              # svn
+# --- Build / profiling ---
 brew "pkgconf"                 # build-time pkg-config
-brew "pipx"                    # install Python CLI apps in isolation
-brew "graphviz"                # dot / graph rendering
+brew "graphviz"                # call graphs for qcachegrind
 brew "qcachegrind"             # callgrind/profiler GUI viewer
-brew "chroma"                  # syntax highlighter
-brew "pygments"                # syntax highlighter (pygmentize)
-brew "grip"                    # local GitHub-flavored README preview
-brew "vhs"                     # scripted terminal GIF/recording
 
-# --- Editors / IDEs ---
+# --- Apps ---
 cask "visual-studio-code"
-cask "sublime-text"
-cask "t3-code"
-
-# --- Git / diff ---
-cask "sublime-merge"
-cask "meld"
-cask "git-credential-manager"
-cask "github"
-
-# --- Terminal ---
-cask "ghostty"
-cask "cmux"
-
-# --- AI coding assistants ---
-# Claude Code: use the native installer for edge releases and autoupdates.
-cask "codex"
-cask "codex-app"
-
-# --- API / DB clients ---
 cask "postman"
 cask "beekeeper-studio"
 cask "switchhosts"             # quick /etc/hosts switching for local sites
-
-# --- Coding fonts ---
-cask "font-fira-code-nerd-font"
-cask "font-fira-mono-nerd-font"
-cask "font-jetbrains-mono-nerd-font"
-cask "font-heavy-data-nerd-font"
 
 # --- Valet / PHP Monitor ---
 tap "nicoverbruggen/cask"

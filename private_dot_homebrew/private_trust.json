@@ -1,0 +1,10 @@
+{
+  "trustedcommands": [
+    "domt4/autoupdate/autoupdate"
+  ],
+  "trustedtaps": [
+    "nicoverbruggen/cask",
+    "shivammathur/extensions",
+    "shivammathur/php"
+  ]
+}

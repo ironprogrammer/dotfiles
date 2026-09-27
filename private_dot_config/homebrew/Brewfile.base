@@ -1,0 +1,110 @@
+# Base setup for every machine: capable terminal, editors, AI tools, desktop
+# apps, and utilities. Brewfile.dev adds WordPress/PHP development on top.
+#
+# Install:     brew bundle --file=~/.config/homebrew/Brewfile.base
+# Drift check: see README.md.
+
+tap "domt4/autoupdate"         # scheduled brew update/upgrade (brew autoupdate)
+
+# --- Terminal / shell ---
+brew "bat"                     # cat with syntax highlighting
+brew "tree"                    # directory tree view
+brew "ripgrep"                 # fast recursive grep (rg)
+brew "thefuck"                 # corrects the previous mistyped command
+brew "glow"                    # markdown renderer in the terminal
+brew "chroma"                  # syntax highlighter
+brew "pygments"                # syntax highlighter (pygmentize)
+brew "grip"                    # local GitHub-flavored README preview
+brew "vhs"                     # scripted terminal GIF/recording
+brew "chezmoi"                 # dotfile management
+brew "zsh-autosuggestions"     # shell QoL
+brew "zsh-syntax-highlighting" # shell QoL
+cask "ghostty"
+cask "cmux"
+
+# --- Git ---
+brew "git"                     # Homebrew git (newer than system/Xcode git)
+brew "git-delta"               # nicer git diffs
+brew "gh"                      # GitHub CLI
+brew "gnupg"                   # GPG signing/encryption
+brew "pinentry-mac"            # GPG pinentry on macOS
+cask "git-credential-manager"
+cask "sublime-merge"
+cask "meld"
+cask "github"
+
+# --- Editors & runtimes ---
+brew "helix"                   # modal terminal editor
+brew "node"                    # Node.js runtime
+brew "deno"                    # Deno runtime
+brew "pipx"                    # install Python CLI apps in isolation
+cask "sublime-text"
+
+# --- AI / agent tooling ---
+# Claude Code: use the native installer for edge releases and autoupdates.
+brew "llm"                     # Simon Willison's LLM CLI
+brew "agent-browser"           # browser automation for agents
+brew "skills"                  # Claude skills tooling
+cask "claude"                  # Claude desktop app
+cask "chatgpt"
+cask "codex"
+cask "codex-app"
+cask "t3-code"
+
+# --- Fonts ---
+cask "font-fira-code-nerd-font"
+cask "font-fira-mono-nerd-font"
+cask "font-jetbrains-mono-nerd-font"
+cask "font-heavy-data-nerd-font"
+
+# --- Media / file CLI ---
+brew "yt-dlp"                  # video/audio downloader
+brew "ffmpeg"                  # media transcoding
+brew "imagemagick"             # image manipulation (convert/magick)
+brew "sox"                     # audio processing
+brew "poppler"                 # PDF tools (pdftotext, pdfimages, etc.)
+brew "imageoptim-cli"          # ImageOptim from the command line
+brew "nut"                     # Network UPS Tools (battery/UPS monitoring)
+brew "defaultbrowser"          # set the default browser from the CLI
+brew "magic-wormhole"          # secure file transfer between machines
+
+# --- Productivity / core ---
+cask "1password"
+cask "proton-pass"
+cask "alfred"
+cask "obsidian"
+
+# --- Browsers ---
+cask "firefox"
+cask "google-chrome"
+cask "finicky"                 # rule-based browser router
+
+# --- Communication ---
+cask "slack"
+
+# --- Audio / music / video ---
+cask "bitwig-studio"
+cask "audio-hijack"
+cask "farrago"
+cask "fission"
+cask "loopback"
+cask "handbrake-app"
+
+# --- Screen capture / sharing ---
+cask "shottr"
+cask "licecap"
+cask "keycastr"
+cask "droplr"
+
+# --- Files / sync / reading ---
+cask "transmit"                # FTP/SFTP/cloud file transfer
+cask "syncthing-app"           # Syncthing with menu-bar UI (bundles the daemon)
+cask "netnewswire"             # RSS reader
+
+# --- Networking / system ---
+cask "tailscale-app"
+cask "flux-app"                # screen color temperature
+cask "imageoptim"              # lossless image compression
+cask "qlmarkdown"              # Quick Look for markdown
+cask "keybase"                 # encrypted messaging / file sharing
+cask "easydmg"                 # DMG creation
