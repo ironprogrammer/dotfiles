@@ -82,6 +82,8 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - When several agents work in parallel, establish file ownership up front so they don't collide.
 - Failure is okay if a process just keeps breaking or is too complex. I'd rather surface these things and help you resolve them than you spend hours in failing loops.
 - Chain with `&&` not `;` when a later step depends on an earlier one. Echo exit codes instead of eyeballing output/guessing.
+- If it's not clear what "done" looks like, please ask. This will help clarify work early on when it matters most, and keep us both honest about staying focused and avoiding creep.
+- When a step doesn't need my input, keep going. Put status notes in the same message as your next action.
 
 ## Continuous improvement
 - If I give instructions that are contrary to what I have here that I'm not specifically overriding, point it out. I may have changed my mind or preference and want to keep you up-to-date.
