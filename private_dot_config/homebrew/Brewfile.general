@@ -1,0 +1,67 @@
+# Everyday apps: desktop, media, communication, and general utilities.
+# Pairs with Brewfile.dev. Run both on a daily driver; only Brewfile.dev on a
+# dedicated dev box.
+#
+# Install:     brew bundle --file=~/.config/homebrew/Brewfile.general
+# Drift check: see Brewfile.dev.
+
+# --- CLI utilities ---
+brew "yt-dlp"          # video/audio downloader
+brew "ffmpeg"          # media transcoding
+brew "imagemagick"     # image manipulation (convert/magick)
+brew "sox"             # audio processing
+brew "poppler"         # PDF tools (pdftotext, pdfimages, etc.)
+brew "imageoptim-cli"  # ImageOptim from the command line
+brew "nut"             # Network UPS Tools (battery/UPS monitoring)
+brew "defaultbrowser"  # set the default browser from the CLI
+brew "magic-wormhole"  # secure file transfer between machines
+
+# --- Productivity / core ---
+cask "1password"
+cask "proton-pass"
+cask "alfred"
+cask "obsidian"
+
+# --- Browsers ---
+cask "firefox"
+cask "google-chrome"
+cask "finicky"          # rule-based browser router
+
+# --- Communication / AI assistants ---
+cask "slack"
+cask "zoom"
+cask "chatgpt"
+cask "claude"           # Claude desktop app
+
+# --- Audio / music / video / creative ---
+cask "bitwig-studio"
+cask "audio-hijack"
+cask "farrago"
+cask "fission"
+cask "loopback"
+cask "musescore"
+cask "macwhisper"
+cask "obs"
+cask "handbrake-app"
+
+# --- Screen capture / sharing ---
+cask "shottr"
+cask "licecap"
+cask "keycastr"
+cask "loom"
+cask "droplr"
+
+# --- Files / sync / reading ---
+cask "transmit"         # FTP/SFTP/cloud file transfer
+cask "syncthing-app"    # Syncthing with menu-bar UI (bundles the daemon)
+cask "netnewswire"      # RSS reader
+
+# --- Networking ---
+cask "tailscale-app"
+
+# --- System utilities ---
+cask "flux-app"         # screen color temperature
+cask "imageoptim"       # lossless image compression
+cask "qlmarkdown"       # Quick Look for markdown
+cask "keybase"          # encrypted messaging / file sharing
+cask "easydmg"          # DMG creation
