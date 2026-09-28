@@ -40,6 +40,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - Use curl when you can for direct tests on things that don't require a full browser.
 - Browser work goes through agent-browser, unless the local test suite says otherwise. Only use claude-in-chrome when live sessions are needed, and state why before acting. May require installation of extension in some envs.
 - Before running agent-browser, load its usage guide with `agent-browser skills get core` (add `--full` for the complete command reference and templates). This content ships with the CLI and always matches the installed version, so never cache or copy it.
+- Use chrome-devtools only for performance, Lighthouse, or console and network debugging.
 - If a browser tool fails twice, stop and tell me. They won't recover on their own.
 - Never say "green", "passing", or "done" without a captured exit code or a run URL in the same message. If it wasn't run, say it wasn't run.
 - Tests need to be run before commit, creating a PR, or cutting a release.
