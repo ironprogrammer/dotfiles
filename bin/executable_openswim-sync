@@ -5,7 +5,8 @@
 # Each track plays in Music while sox records the Loopback device.
 # The recording is trimmed of edge silence and saved to a local cache.
 # Cached tracks are reused by title, so reruns only record new tracks.
-# If the OpenSwim is mounted, it is then wiped and refilled in playlist order.
+# If the OpenSwim is mounted, its files are renumbered, pruned, and topped up
+# to match the cache; only missing or changed tracks are copied.
 #
 # Usage: openswim-sync [playlist]   (default: Swim)
 
@@ -138,11 +139,28 @@ if [[ "$MOUNTED" == 0 ]]; then
 	exit 0
 fi
 
-echo "Refreshing $VOLUME..."
+echo "Syncing $VOLUME..."
 find "$VOLUME" -maxdepth 1 -type f -name '._*' -delete
-find "$VOLUME" -maxdepth 1 -type f -iname '*.mp3' -delete
+
+# Renumbers device files to match the cache, then flags any that need copying.
+COPY=()
 for name in "${KEEP[@]}"; do
-	COPYFILE_DISABLE=1 cp -X "$CACHE/$name" "$VOLUME/"
+    dest="$VOLUME/$name"
+    if [[ ! -f "$dest" ]]; then
+        existing="$(find "$VOLUME" -maxdepth 1 -name "[0-9][0-9] - ${name#?? - }" ! -path "$dest" | head -n1)"
+        [[ -n "$existing" ]] && mv "$existing" "$dest"
+    fi
+    [[ -f "$dest" && "$(stat -f %z "$dest")" == "$(stat -f %z "$CACHE/$name")" ]] || COPY+=("$name")
+done
+
+for f in "$VOLUME"/*.[mM][pP]3; do
+    [[ -e "$f" ]] || continue
+    [[ " ${KEEP[*]} " == *" $(basename "$f") "* ]] || { rm -f "$f"; echo "removed from device: $(basename "$f")"; }
+done
+
+for name in ${COPY[@]+"${COPY[@]}"}; do
+    echo "copying: $name"
+    COPYFILE_DISABLE=1 cp -X "$CACHE/$name" "$VOLUME/"
 done
 dot_clean -f -m "$VOLUME"
-echo "Done: $TOTAL tracks on $VOLUME"
+echo "Done: $TOTAL tracks on $VOLUME (${#COPY[@]} copied)"
