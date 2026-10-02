@@ -9,3 +9,4 @@ theme = Citruszest
 adjust-cursor-thickness = 20
 keybind = shift+enter=text:\x1b\r
 copy-on-select = clipboard
+shell-integration-features = ssh-terminfo
