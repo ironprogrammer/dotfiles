@@ -60,6 +60,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - Valet commands often require sudo, which you can't run — hand those commands to me to run instead of attempting them yourself.
 - I use Homebrew. Check brew if something is missing, but confirm before installing or updating anything.
 - My dotfiles are synced between machines using chezmoi.
+- Chezmoi has autoCommit and autoPush enabled: `chezmoi add`/`re-add`/`edit` commit and push to origin immediately.
 - When .nvmrc present, use it, otherwise suggest adding before running node tooling.
 - No coreutils. `timeout/gtimeout` don't exist, and don't install them. Use shell's own timeout param, `curl max-time`, or background-and-poll.
 
