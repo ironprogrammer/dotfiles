@@ -1,11 +1,15 @@
 # skill.zsh
 # `skill` opens an installed skill for hand-editing, plus its completion.
 
-# Prints name<TAB>path for every skill in the personal and work skill dirs.
+# Prints name<TAB>path<TAB>label for every installed skill. Personal skills
+# have an empty label; work skills are labeled "work".
 _skill_index() {
 	local f
-	for f in ~/.claude/skills/*/SKILL.md(N) ~/.claude-work/skills/*/SKILL.md(N); do
-		print -r -- "${f:h:t}"$'\t'"${f:h}"
+	for f in ~/.claude/skills/*/SKILL.md(N); do
+		print -r -- "${f:h:t}"$'\t'"${f:h}"$'\t'
+	done
+	for f in ~/.claude-work/skills/*/SKILL.md(N); do
+		print -r -- "${f:h:t}"$'\t'"${f:h}"$'\twork'
 	done
 }
 
@@ -39,7 +43,7 @@ skill() {
 	if [[ -z "$1" || "$1" == -h || "$1" == --help ]]; then
 		print "Usage: skill <name>   # open a skill in \$VISUAL/\$EDITOR (override: \$SKILL_EDITOR)"
 		print "\nInstalled skills:"
-		print -r -- "$index" | cut -f1 | sort -u | sed 's/^/  /'
+		print -r -- "$index" | awk -F'\t' '{print "  " $1 ($3 ? " (" $3 ")" : "")}' | sort
 		return 0
 	fi
 
@@ -65,15 +69,15 @@ skill() {
 	fi
 
 	# Open SKILL.md itself; anything else in the skill is a sidebar away.
-	local dir="${matches#*$'\t'}"
+	local dir="${${matches#*$'\t'}%%$'\t'*}"
 	[[ -f "$dir/SKILL.md" ]] && ed+=("$dir/SKILL.md") || ed+=("$dir")
 	"${ed[@]}"
 }
 
-# Completes installed skill names.
+# Completes installed skill names, describing work skills as such.
 _skill() {
 	local -a names
-	names=(${(f)"$(skill --names 2>/dev/null)"})
+	names=(${(f)"$(_skill_index | awk -F'\t' '{print $1 ($3 ? ":" $3 : "")}' | sort -u)"})
 	(( ${#names} )) && _describe -t skills 'skill' names
 }
 compdef _skill skill
