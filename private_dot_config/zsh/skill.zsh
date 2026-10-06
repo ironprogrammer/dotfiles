@@ -1,10 +1,12 @@
 # skill.zsh
 # `skill` opens an installed skill for hand-editing, plus its completion.
 
-# Prints name<TAB>path for every installed skill, deduped by path.
+# Prints name<TAB>path for every skill in the personal and work skill dirs.
 _skill_index() {
-	{ skills ls --json; skills ls -g --json } 2>/dev/null \
-		| jq -rs 'add | unique_by(.path) | sort_by(.name) | .[] | "\(.name)\t\(.path)"'
+	local f
+	for f in ~/.claude/skills/*/SKILL.md(N) ~/.claude-work/skills/*/SKILL.md(N); do
+		print -r -- "${f:h:t}"$'\t'"${f:h}"
+	done
 }
 
 # Opens a skill in $VISUAL/$EDITOR (override with $SKILL_EDITOR).
