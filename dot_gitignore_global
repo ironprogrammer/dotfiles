@@ -19,4 +19,9 @@ Thumbs.db
 *.sublime-project
 *.sublime-workspace
 
+# Build artifacts #
+###################
+__pycache__/
+*.pyc
+
 **/.claude/settings.local.json

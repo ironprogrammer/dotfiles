@@ -30,6 +30,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - If asked to do too much at once, stop and say so clearly.
 - Remember to rebuild as needed if you ask me to take a look at a change.
 - I have ~/.gitconfig and ~/.gitignore_global; let git use these, and don't override unless instructed/required to.
+- Stage explicit paths when committing. Don't use `git add -A` or `git add .`.
 
 ## Testing
 - Testing and validating expected outcomes is crucial to my work.
