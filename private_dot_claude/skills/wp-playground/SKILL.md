@@ -1,6 +1,6 @@
 ---
 name: wp-playground
-description: Use when spinning up a Playground instance, writing or editing a Playground blueprint, or testing plugin/admin/block changes locally before shipping a build.
+description: Use when spinning up a Playground instance or testing plugin/admin/block changes locally before shipping a build. Also applies alongside the blueprint skill whenever a blueprint is written or run.
 ---
 
 # WordPress Playground
@@ -10,6 +10,8 @@ use it before handing over a build, especially for anything touching admin
 screens, block rendering, or settings UI.
 
 ## Blueprints
+
+Use the `blueprint` skill for schema, steps, and resources. The rules below override it where they differ.
 
 Default to v1 blueprints. Use v2 only when asked for it.
 
@@ -45,9 +47,7 @@ Report that version, not the one requested. E.g. "wp": "7.1" resolves to the new
 until curl -sf --max-time 2 http://127.0.0.1:PORT/ >/dev/null; do sleep 1; done
 ```
 
-- No coreutils on this machine — `timeout`/`gtimeout` don't exist. Use the shell's own timeout param, `curl --max-time`, or background-and-poll.
 - Kill any Playground instance you started when the work is done.
-- Give a clickable URL when reporting a running instance, not a bare port.
 
 ## Reporting results
 
