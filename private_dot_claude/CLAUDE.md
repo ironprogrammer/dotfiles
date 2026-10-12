@@ -31,6 +31,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - Remember to rebuild as needed if you ask me to take a look at a change.
 - I have ~/.gitconfig and ~/.gitignore_global; let git use these, and don't override unless instructed/required to.
 - Stage explicit paths when committing. Don't use `git add -A` or `git add .`.
+- When reverse-engineering a site's internal API, or building a client/CLI for a site that will be automated repeatedly, load the guide with `agent-browser skills get derive-client` first.
 
 ## Testing
 - Testing and validating expected outcomes is crucial to my work.
@@ -40,7 +41,9 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - Don't guess that something passed; either properly utilize tests that are in place, or suggest options to make sure we're not making things up.
 - Use curl when you can for direct tests on things that don't require a full browser.
 - Browser work goes through agent-browser, unless the local test suite says otherwise. Only use claude-in-chrome when live sessions are needed, and state why before acting. May require installation of extension in some envs.
-- Before running agent-browser, load its usage guide with `agent-browser skills get core` (add `--full` for the complete command reference and templates). This content ships with the CLI and always matches the installed version, so never cache or copy it.
+- Each version of agent-browser ships its own skills with the CLI (available via `agent-browser skills get {skill}`), so never cache or copy them.
+- Before running agent-browser, load its usage guide with `agent-browser skills get core` (add `--full` for the complete command reference and templates).
+- For QA, exploratory testing, or bug hunting a web app, use `agent-browser skills get dogfood` before starting.
 - Use chrome-devtools only for performance, Lighthouse, or console and network debugging.
 - If a browser tool fails twice, stop and tell me. They won't recover on their own.
 - Never say "green", "passing", or "done" without a captured exit code or a run URL in the same message. If it wasn't run, say it wasn't run.
