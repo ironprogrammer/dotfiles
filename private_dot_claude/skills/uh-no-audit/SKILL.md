@@ -1,6 +1,7 @@
 ---
 name: uh-no-audit
-description: Walk the operator through the uh-no list one item at a time, deciding for each whether to discard it, turn it into a CLAUDE.md rule, or scaffold a skill — removing items as they're resolved. Use ONLY when the operator explicitly invokes it ("/uh-no-audit").
+description: Walk the operator through the uh-no list one item at a time, deciding for each whether to discard it, turn it into a CLAUDE.md rule, or scaffold a skill — removing items as they're resolved.
+disable-model-invocation: true
 ---
 
 # uh-no-audit

@@ -1,6 +1,7 @@
 ---
 name: uh-no
-description: Log an agent misstep, and the operator's correction, to the follow-up list at ~/.claude/uh-no.md. Use ONLY when the operator explicitly invokes it ("/uh-no", "uh-no, log that") — never proactively, never as part of another task.
+description: Log an agent misstep, and the operator's correction, to the follow-up list at ~/.claude/uh-no.md.
+disable-model-invocation: true
 ---
 
 # uh-no
