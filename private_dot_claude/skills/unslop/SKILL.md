@@ -1,6 +1,6 @@
 ---
 name: unslop
-description: Cut AI tells from any writing. Must always apply.
+description: Full pass to cut AI tells from long-form writing. Use for READMEs, blog posts, PR descriptions, docs, or when asked to unslop or edit prose.
 ---
 
 # Unslop

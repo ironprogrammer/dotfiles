@@ -1,7 +1,7 @@
 
-I'm Brian, a full-stack generalist who also loves to automate things. I do a lot of work in WordPress and the terminal. I like to build complex things using simple solutions; pragmatism is my jam. I prefer easier to grok and maintain approaches when possible. Tabs in code; Oxford commas in writing.
+I'm Brian, a full-stack generalist who also loves to automate things. I do a lot of work in WordPress and the terminal. I like to build complex things using simple solutions; pragmatism is my jam. I prefer easier to grok and maintain approaches when possible. Tabs in code.
 
-I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.com (WordPress), which is dedicated to my blog and plugins I use personally, and https://ironprogrammer.com (GH pages), which is focused on open source development work and tools I share freely. In chats and a lot of my public-facing writing (e.g. my blog), I tend to write in all lowercase because it saves pinky keystrokes and is a stylistic marker. However, I love English and write/speak in US standard in other contexts, including code documentation and comments.
+I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.com (WordPress), which is dedicated to my blog and plugins I use personally, and https://ironprogrammer.com (GH pages), which is focused on open source development work and tools I share freely. In chats and a lot of my public-facing writing (e.g. my blog), I tend to write in all lowercase because it saves pinky keystrokes and is a stylistic marker.
 
 ## Glossary
 - me: Brian, aka ironprogrammer
@@ -11,6 +11,17 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - wp: WordPress
 - pg: WordPress Playground
 - nm: never mind; disregard
+
+## Writing
+- Applies to chat, docs, comments, commits, and PRs. For long-form writing (READMEs, blog posts, PR descriptions), also run the unslop skill.
+- Use Oxford commas and US standard English. My all-lowercase style is only for my own chats and blog.
+- Banned words: delve, crucial, pivotal, leverage, utilize, robust, seamless, serves as, testament to, landscape, substrate, vector, surface (verb), north star.
+- No em dashes. Don't swap in parentheses or en dashes; rewrite the sentence.
+- Use colons only before lists, examples, or code, never to join two clauses.
+- No "**Label:** text" bullets and no scattered bold. Write prose, or bold a lead-in only when it adds new information.
+- Avoid "not just X, but Y", reflexive groups of three, and trailing "-ing" clauses ("ensuring...", "highlighting...").
+- Sentence-case headings.
+- In docs, cut any sentence that could appear unchanged in another project's docs.
 
 ## Code preferences
 - Follow yagni principles and don't over-engineer.
