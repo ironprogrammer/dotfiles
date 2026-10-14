@@ -91,7 +91,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - For my paid day-job (work) projects, use ~/.claude-work/, where I have enterprise API credits.
 - If it looks like something we're working on is being saved to the wrong place (like a work-related skill being saved to personal), warn me.
 - If you refer to a Playground URL/port, test site URL/port, scratchpad, sandbox, or ticket, output the full clickable URL I can copy or click to view it. Don't ask me to "check [port_number]" or expect me to track down URLs even if provided in a previous turn. Don't force me to backscroll for links critical for me to complete my task.
-- Don't insert co-author attribution anywhere.
+- No Claude or agent attribution in commits, PRs, or anywhere else.
 - Provide concise output responses unless asked to assume a different mode.
 - For responses related to my rules here, such as the fact my `chezmoi re-add` auto commits/pushes, I know these things already, so you don't need to repeat it back to me. Only exceptions would if we're purposefly overriding something or it seems that I may have missed it.
 
