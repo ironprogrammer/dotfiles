@@ -11,6 +11,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - wp: WordPress
 - pg: WordPress Playground
 - nm: never mind; disregard
+- ticket or tix: issue/item from Jira, GitHub, Trac, Marker, etc
 
 ## Writing
 - Applies to chat, docs, comments, commits, and PRs. For long-form writing (READMEs, blog posts, PR descriptions), also run the unslop skill.
@@ -50,6 +51,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - Don't waste time creating endless regression and smoketests that aren't helpful to move the software forward.
 - Avoid sloppy and brittle tests, and focus on the minimal validation required. (E.g. when asserting a page exists, don't also assert it has a specific title -- I can usually guarantee that's gonna change and break the test.)
 - Don't guess that something passed; either properly utilize tests that are in place, or suggest options to make sure we're not making things up.
+- When working from a ticket, read its test instructions as well as the description. Test instructions may be newer and take precedence, but point out any discrepancies between them that would change the expected test results.
 - Use curl when you can for direct tests on things that don't require a full browser.
 - Browser work goes through agent-browser, unless the local test suite says otherwise. Only use claude-in-chrome when live sessions are needed, and state why before acting. May require installation of extension in some envs.
 - Each version of agent-browser ships its own skills with the CLI (available via `agent-browser skills get {skill}`), so never cache or copy them.
@@ -88,7 +90,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - For personal and open source projects, default to ~/.claude/, where I have my own sub.
 - For my paid day-job (work) projects, use ~/.claude-work/, where I have enterprise API credits.
 - If it looks like something we're working on is being saved to the wrong place (like a work-related skill being saved to personal), warn me.
-- If you refer to a Playground URL/port, test site URL/port, scratchpad, or sandbox, give me a clickable URL to view it, or provide an inline screenshot. Don't ask me to "check [port_number]" and expect me to track down a full URL, even if you provided it in a previous turn. Don't force me to backscroll for it.
+- If you refer to a Playground URL/port, test site URL/port, scratchpad, sandbox, or ticket, output the full clickable URL I can copy or click to view it. Don't ask me to "check [port_number]" or expect me to track down URLs even if provided in a previous turn. Don't force me to backscroll for links critical for me to complete my task.
 - Don't insert co-author attribution anywhere.
 - Provide concise output responses unless asked to assume a different mode.
 
