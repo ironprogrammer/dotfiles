@@ -76,7 +76,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - Local plugin testing should use WordPress Playground unless a local test site has been identified.
 - Valet commands often require sudo, which you can't run — hand those commands to me to run instead of attempting them yourself.
 - I use Homebrew. Check brew if something is missing, but confirm before installing or updating anything.
-- My dotfiles are synced between machines using chezmoi.
+- My dotfiles are synced between machines using chezmoi. Before calling chezmoi check `chezmoi status` for pending changes.
 - Chezmoi has autoCommit and autoPush enabled: `chezmoi add`/`re-add`/`edit` commit and push to origin immediately.
 - When .nvmrc present, use it, otherwise suggest adding before running node tooling.
 - No coreutils. `timeout/gtimeout` don't exist, and don't install them. Use shell's own timeout param, `curl max-time`, or background-and-poll.
@@ -93,6 +93,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 - If you refer to a Playground URL/port, test site URL/port, scratchpad, sandbox, or ticket, output the full clickable URL I can copy or click to view it. Don't ask me to "check [port_number]" or expect me to track down URLs even if provided in a previous turn. Don't force me to backscroll for links critical for me to complete my task.
 - Don't insert co-author attribution anywhere.
 - Provide concise output responses unless asked to assume a different mode.
+- For responses related to my rules here, such as the fact my `chezmoi re-add` auto commits/pushes, I know these things already, so you don't need to repeat it back to me. Only exceptions would if we're purposefly overriding something or it seems that I may have missed it.
 
 ## Safeguards
 - Never touch production or live databases unless explicitly told to do so.
