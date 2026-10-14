@@ -1,0 +1,95 @@
+#!/usr/bin/env zsh
+# Size a browser window for screen recordings, pinned top-left under the menu bar.
+# Sizes target the page viewport by default; --window sizes the whole window instead.
+# full fills the screen under the menu bar, like dragging a window to the top edge; half fills its left half.
+# Usage: browsersize [preset|WxH|full|half] [chrome|safari] [--window]
+#        browsersize list     print presets
+#        browsersize alfred   presets as Alfred Script Filter JSON
+
+local -a order=(720p 1080p 1440x900 square iphone)
+typeset -A presets=(
+	720p     1280x720
+	1080p    1920x1080
+	1440x900 1440x900
+	square   1080x1080
+	iphone   402x874
+)
+local default_preset=720p
+
+# Toolbar size (window minus viewport) per browser; remeasure if browser UI changes.
+typeset -A overhead=(
+	chrome 240x47
+	safari 0x90
+)
+typeset -A apps=(chrome 'Google Chrome' safari Safari)
+typeset -A new_window=(chrome 'make new window' safari 'make new document')
+
+local size=$presets[$default_preset] browser=chrome mode=viewport
+
+for arg in "$@"; do
+	if [[ $arg == list ]]; then
+		for p in $order; do printf '%-9s %s\n' $p $presets[$p]; done
+		exit 0
+	elif [[ $arg == alfred ]]; then
+		local -a items=()
+		for p in $order; do
+			items+=("{\"uid\":\"$p\",\"title\":\"$p\",\"subtitle\":\"$presets[$p] viewport in Chrome (⌘ Safari, ⌥ whole window)\",\"arg\":\"$p\",\"mods\":{\"cmd\":{\"arg\":\"$p safari\",\"subtitle\":\"$presets[$p] viewport in Safari\"},\"alt\":{\"arg\":\"$p --window\",\"subtitle\":\"$presets[$p] whole Chrome window\"}}}")
+		done
+		items+=("{\"uid\":\"full\",\"title\":\"full\",\"subtitle\":\"Fill screen under menu bar in Chrome (⌘ Safari)\",\"arg\":\"full\",\"mods\":{\"cmd\":{\"arg\":\"full safari\",\"subtitle\":\"Fill screen under menu bar in Safari\"}}}")
+		items+=("{\"uid\":\"half\",\"title\":\"half\",\"subtitle\":\"Fill left half of screen in Chrome (⌘ Safari)\",\"arg\":\"half\",\"mods\":{\"cmd\":{\"arg\":\"half safari\",\"subtitle\":\"Fill left half of screen in Safari\"}}}")
+		print -r -- "{\"items\":[${(j:,:)items}]}"
+		exit 0
+	elif [[ $arg == (-w|--window) ]]; then
+		[[ $mode == (full|half) ]] || mode=window
+	elif [[ $arg == (full|half) ]]; then
+		mode=$arg
+	elif (( ${+apps[$arg]} )); then
+		browser=$arg
+	elif (( ${+presets[$arg]} )); then
+		size=$presets[$arg]
+	elif [[ $arg =~ '^[0-9]+x[0-9]+$' ]]; then
+		size=$arg
+	else
+		print -u2 "browsersize: unknown argument '$arg'"
+		print -u2 "usage: browsersize [${(j:|:)order}|WxH|full|half] [chrome|safari] [--window]"
+		exit 1
+	fi
+done
+
+# Primary screen's usable area (minus menu bar and Dock) as "left top width height", top-left origin.
+local -a visible=($(osascript -l JavaScript -e 'ObjC.import("AppKit"); var s = $.NSScreen.screens.objectAtIndex(0), f = s.frame, v = s.visibleFrame; [v.origin.x, f.size.height - v.origin.y - v.size.height, v.size.width, v.size.height].join(" ")'))
+local left=0 top=$visible[2] w=${size%x*} h=${size#*x}
+if [[ $mode == full ]]; then
+	left=$visible[1] w=$visible[3] h=$visible[4]
+elif [[ $mode == half ]]; then
+	left=$visible[1] w=$(( visible[3] / 2 )) h=$visible[4]
+elif [[ $mode == viewport ]]; then
+	(( w += ${overhead[$browser]%x*}, h += ${overhead[$browser]#*x} ))
+fi
+[[ $mode == (full|half) ]] && size=${w}x$h
+local app=$apps[$browser]
+
+local bounds
+bounds=$(osascript <<-EOF
+	set wasRunning to application "$app" is running
+	tell application "$app"
+		activate
+		if not wasRunning then
+			repeat 25 times
+				if (count of windows) > 0 then exit repeat
+				delay 0.2
+			end repeat
+		end if
+		if (count of windows) = 0 then $new_window[$browser]
+		set bounds of front window to {$left, $top, $(( left + w )), $(( top + h ))}
+		get bounds of front window
+	end tell
+EOF
+) || exit 1
+
+local expected="$left, $top, $(( left + w )), $(( top + h ))"
+if [[ $bounds != $expected ]]; then
+	print -u2 "browsersize: $app set bounds to {$bounds}, wanted {$expected}"
+	exit 1
+fi
+echo "$app $mode $size at $left,$top"
