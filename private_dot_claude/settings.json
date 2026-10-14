@@ -25,5 +25,8 @@
   "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
   "agentPushNotifEnabled": true,
-  "voiceEnabled": true
+  "voiceEnabled": true,
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
+  }
 }
