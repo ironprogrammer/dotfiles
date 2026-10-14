@@ -2,13 +2,15 @@
 # `skill` opens an installed skill for hand-editing, plus its completion.
 
 # Prints name<TAB>path<TAB>label for every installed skill. Personal skills
-# have an empty label; work skills are labeled "work".
+# have an empty label; work skills are labeled "work". Work entries that are
+# symlinks to personal skills are skipped so shared skills list once.
 _skill_index() {
 	local f
 	for f in ~/.claude/skills/*/SKILL.md(N); do
 		print -r -- "${f:h:t}"$'\t'"${f:h}"$'\t'
 	done
 	for f in ~/.claude-work/skills/*/SKILL.md(N); do
+		[[ -L ${f:h} ]] && continue
 		print -r -- "${f:h:t}"$'\t'"${f:h}"$'\twork'
 	done
 }
