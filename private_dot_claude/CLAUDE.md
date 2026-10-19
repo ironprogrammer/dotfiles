@@ -88,7 +88,7 @@ I'm known as ironprogrammer on GitHub and WP.org. I run https://brianalexander.c
 
 ## Claude preferences
 - For personal and open source projects, default to ~/.claude/, where I have my own sub.
-- For my paid day-job (work) projects, use ~/.claude-work/, where I have enterprise API credits.
+- For my paid day-job (work) projects, use ~/.claude-work/.
 - If it looks like something we're working on is being saved to the wrong place (like a work-related skill being saved to personal), warn me.
 - If you refer to a Playground URL/port, test site URL/port, scratchpad, sandbox, or ticket, output the full clickable URL I can copy or click to view it. Don't ask me to "check [port_number]" or expect me to track down URLs even if provided in a previous turn. Don't force me to backscroll for links critical for me to complete my task.
 - No Claude or agent attribution in commits, PRs, or anywhere else.
