@@ -7,6 +7,9 @@
     "type": "command",
     "command": "bash /Users/brian/.claude/statusline-command.sh"
   },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
+  },
   "outputStyle": "Concise",
   "effortLevel": "high",
   "modelSettings": {
@@ -14,7 +17,7 @@
       "effortLevel": "medium"
     },
     "claude-opus-5-5": {
-      "effortLevel": "medium"
+      "effortLevel": "high"
     }
   },
   "tui": "fullscreen",
@@ -25,8 +28,5 @@
   "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
   "agentPushNotifEnabled": true,
-  "voiceEnabled": true,
-  "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true
-  }
+  "voiceEnabled": true
 }
